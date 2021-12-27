@@ -1,0 +1,34 @@
+{
+    "name": "zenstruck/uri",
+    "description": "Object-oriented wrapper/manipulator for parse_url with additional features.",
+    "homepage": "https://github.com/zenstruck/uri",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["uri", "url", "parser", "mailto"],
+    "authors": [
+        {
+            "name": "Kevin Bond",
+            "email": "kevinbond@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "symfony/http-foundation": "^4.4|^5.0|^6.0",
+        "symfony/phpunit-bridge": "^6.0",
+        "twig/twig": "^2.8|^3.0"
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": { "Zenstruck\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Zenstruck\\Uri\\Tests\\": "tests/" }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

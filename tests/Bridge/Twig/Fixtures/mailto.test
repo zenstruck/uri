@@ -1,0 +1,14 @@
+--TEST--
+"mailto" filter
+--TEMPLATE--
+{{ 'kevin@example.com?subject=subject'|mailto.subject }}
+{{ 'kevin@example.com'|mailto }}
+{{ null|mailto }}
+{{ null|mailto.withSubject('my subject') }}
+--DATA--
+return []
+--EXPECT--
+subject
+mailto:kevin%40example.com
+mailto:
+mailto:?subject=my%20subject

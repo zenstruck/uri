@@ -1,0 +1,12 @@
+--TEST--
+"uri" filter
+--TEMPLATE--
+{{ 'https://example.com:8080/foo'|uri.host }}
+{{ 'https://example.com:8080/foo'|uri }}
+{{ null|uri.withScheme('ftp').withHost('example.com') }}
+--DATA--
+return []
+--EXPECT--
+example.com
+https://example.com:8080/foo
+ftp://example.com
