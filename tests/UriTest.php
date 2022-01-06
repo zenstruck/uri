@@ -66,7 +66,7 @@ final class UriTest extends TestCase
         $this->assertSame(8080, $uri->port());
         $this->assertSame('/path/123', (string) $uri->path());
         $this->assertSame('q=abc', (string) $uri->query());
-        $this->assertSame('', $uri->fragment()); // Symfony Requests do not contain a fragment
+        $this->assertNull($uri->fragment()); // Symfony Requests do not contain a fragment
         $this->assertSame('https://user:pass@example.com:8080/path/123?q=abc', (string) $uri);
     }
 
@@ -86,7 +86,7 @@ final class UriTest extends TestCase
         $this->assertSame(8080, $uri->port());
         $this->assertSame('/path/123', (string) $uri->path());
         $this->assertSame('q=abc', (string) $uri->query());
-        $this->assertSame('', $uri->fragment()); // Symfony Requests do not contain a fragment
+        $this->assertNull($uri->fragment()); // Symfony Requests do not contain a fragment
         $this->assertSame('https://example.com:8080/path/123?q=abc', (string) $uri);
     }
 
@@ -404,6 +404,14 @@ final class UriTest extends TestCase
     /**
      * @test
      */
+    public function empty_fragment_converts_to_null(): void
+    {
+        $this->assertNull(Uri::new()->withFragment('')->fragment());
+    }
+
+    /**
+     * @test
+     */
     public function suffixing_scheme_with_separator_removes_it(): void
     {
         $this->assertSame('http', Uri::new()->withScheme('http')->scheme()->toString());
@@ -424,7 +432,7 @@ final class UriTest extends TestCase
         $this->assertNull($uri->port());
         $this->assertSame('', (string) $uri->path());
         $this->assertSame('', (string) $uri->query());
-        $this->assertSame('', $uri->fragment());
+        $this->assertNull($uri->fragment());
     }
 
     /**

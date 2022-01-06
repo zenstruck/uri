@@ -21,7 +21,7 @@ final class Uri
     private Authority $authority;
     private Path $path;
     private Query $query;
-    private string $fragment;
+    private ?string $fragment;
 
     public function __construct(?string $value = null)
     {
@@ -32,7 +32,7 @@ final class Uri
         $this->scheme = new Scheme($components['scheme'] ?? '');
         $this->path = new Path($components['path'] ?? '');
         $this->query = new Query($components['query'] ?? []);
-        $this->fragment = \rawurldecode($components['fragment'] ?? '');
+        $this->fragment = isset($components['fragment']) ? \rawurldecode($components['fragment']) : null;
         $this->authority = new Authority(
             $components['host'] ?? '',
             $components['user'] ?? null,
@@ -91,7 +91,7 @@ final class Uri
         return $this->query;
     }
 
-    public function fragment(): string
+    public function fragment(): ?string
     {
         return $this->fragment;
     }
@@ -237,7 +237,7 @@ final class Uri
     public function withFragment(?string $fragment): self
     {
         $uri = clone $this;
-        $uri->fragment = \ltrim((string) $fragment, '#');
+        $uri->fragment = '' === (string) $fragment ? null : \ltrim($fragment, '#');
 
         return $uri;
     }
@@ -272,7 +272,7 @@ final class Uri
             $ret .= "?{$this->query}";
         }
 
-        if ('' !== $this->fragment) {
+        if (null !== $this->fragment) {
             $ret .= '#'.\rawurlencode($this->fragment);
         }
 
