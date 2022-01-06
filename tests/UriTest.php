@@ -851,6 +851,14 @@ final class UriTest extends TestCase
 
     /**
      * @test
+     */
+    public function removing_host_removes_authority(): void
+    {
+        $this->assertSame('scheme:/path', Uri::new('scheme://user:pass@example.com:22/path')->withoutHost()->toString());
+    }
+
+    /**
+     * @test
      * @dataProvider uriComponentsEncodingProvider
      */
     public function uri_components_are_properly_encoded($input, $expectedPath, $expectedQ, $expectedUser, $expectedPass, $expectedFragment, $expectedString): void

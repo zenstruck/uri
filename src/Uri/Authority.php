@@ -62,6 +62,12 @@ final class Authority
         $authority = clone $this;
         $authority->host = new Host((string) $host);
 
+        if ($authority->host->isEmpty()) {
+            $authority->username = null;
+            $authority->password = null;
+            $authority->port = null;
+        }
+
         return $authority;
     }
 

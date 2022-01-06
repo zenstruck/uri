@@ -130,11 +130,11 @@ $uri->withoutScheme()->toString(); // "//user:pass@example.com/path?q=abc&flag=1
 
 // HOST
 $uri->withHost('localhost')->toString(); // "https://user:pass@localhost/path?q=abc&flag=1#test"
-Uri::new('//example.com/path/to/file.txt')->withoutHost()->toString(); // "/path/to/file.txt"
+$uri->withoutHost()->toString(); // "https:/path?q=abc&flag=1#test" (removes username/password/port as well)
 
 // USER
 $uri->withUser('foo@bar.com')->toString(); // "https://foo%40bar.com:pass@example.com/path?q=abc&flag=1#test" (urlencoded)
-$uri->withoutUser()->toString(); // "https://example.com/path?q=abc&flag=1#test" // removes password as well
+$uri->withoutUser()->toString(); // "https://example.com/path?q=abc&flag=1#test" (removes password as well)
 
 // PASSWORD
 $uri->withPass('pass#word')->toString(); // "https://user:pass%23word@example.com/path?q=abc&flag=1#test" (urlencoded)
