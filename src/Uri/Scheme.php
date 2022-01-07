@@ -8,6 +8,16 @@ namespace Zenstruck\Uri;
 final class Scheme extends LowercasePart
 {
     private const DEFAULT_DELIMITER = '+';
+    private const SCHEME_DEFAULT_PORT = [
+        'ftp' => 21,
+        'ftps' => 21,
+        'sftp' => 22,
+        'gopher' => 70,
+        'http' => 80,
+        'https' => 443,
+        'ws' => 80,
+        'wss' => 443,
+    ];
 
     public function __construct(string $value)
     {
@@ -47,5 +57,10 @@ final class Scheme extends LowercasePart
     public function contains(string $value, string $delimiter = self::DEFAULT_DELIMITER): bool
     {
         return \in_array($value, $this->segments($delimiter), true);
+    }
+
+    public function defaultPort(): ?int
+    {
+        return self::SCHEME_DEFAULT_PORT[$this->toString()] ?? null;
     }
 }

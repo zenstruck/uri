@@ -64,6 +64,10 @@ Uri::new('http://foo%40bar.com:pass%23word@example.com')->pass(); // pass#word (
 $uri->port(); // (null)
 Uri::new('example.com:21')->port(); // 21
 
+// guess port from scheme
+Uri::new('http://example.com')->guessPort(); // 80
+Uri::new('http://example.com:555')->guessPort(); // 555 (returns explicitly set port if available)
+
 // PATH
 $uri->path()->toString(); // "/some/dir/file.html"
 $uri->path()->segments(); // ["some", "dir", "file.html"]

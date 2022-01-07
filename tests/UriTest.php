@@ -881,4 +881,28 @@ final class UriTest extends TestCase
         yield 'Already encoded' => ['http://k%20b:p%20d@host/pa%20th/s%20b?q=va%20lue#frag%20ment', '/pa th/s b', 'va lue', 'k b', 'p d', 'frag ment', 'http://k%20b:p%20d@host/pa%20th/s%20b?q=va%20lue#frag%20ment'];
         yield 'Path segments not encoded' => ['/pa/th//two?q=va/lue#frag/ment', '/pa/th//two', 'va/lue', null, null, 'frag/ment', '/pa/th//two?q=va%2Flue#frag%2Fment'];
     }
+
+    /**
+     * @test
+     * @dataProvider guessPortProvider
+     */
+    public function can_guess_port(string $uri, ?int $expectedPort): void
+    {
+        $this->assertSame($expectedPort, Uri::new($uri)->guessPort());
+    }
+
+    public static function guessPortProvider(): iterable
+    {
+        yield ['http://example.com', 80];
+        yield ['http://example.com:21', 21];
+        yield ['https://example.com', 443];
+        yield ['ftp://example.com', 21];
+        yield ['ftps://example.com', 21];
+        yield ['sftp://example.com', 22];
+        yield ['gopher://example.com', 70];
+        yield ['ws://example.com', 80];
+        yield ['wss://example.com', 443];
+        yield ['unk://example.com', null];
+        yield ['/path', null];
+    }
 }

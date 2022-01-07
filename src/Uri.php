@@ -106,6 +106,14 @@ final class Uri
         return !$this->scheme->isEmpty();
     }
 
+    /**
+     * @return int|null The explicit port or the default for the scheme
+     */
+    public function guessPort(): ?int
+    {
+        return $this->port() ?? $this->scheme()->defaultPort();
+    }
+
     public function withHost(?string $host): self
     {
         $uri = clone $this;
