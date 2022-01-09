@@ -1,5 +1,8 @@
 # zenstruck/uri
 
+[![CI](https://github.com/zenstruck/uri/actions/workflows/ci.yml/badge.svg)](https://github.com/zenstruck/uri/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/zenstruck/uri/branch/1.x/graph/badge.svg?token=33QG3ZA3G0)](https://codecov.io/gh/zenstruck/uri)
+
 Object-oriented wrapper/manipulator for `parse_url` with the following features:
 * Read URI _parts_ as objects (`Scheme`, `Host`, `Path`, `Query`), each with their own
   set of features.
