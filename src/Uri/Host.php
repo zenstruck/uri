@@ -8,7 +8,7 @@ namespace Zenstruck\Uri;
 final class Host extends LowercasePart
 {
     /**
-     * @return array The host exploded with "."
+     * @return string[] The host exploded with "."
      */
     public function segments(): array
     {
