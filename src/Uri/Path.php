@@ -15,7 +15,9 @@ final class Path extends Part
     }
 
     /**
-     * @return array The path exploded with $delimiter
+     * @param non-empty-string $delimiter
+     *
+     * @return string[] The path exploded with $delimiter
      */
     public function segments(string $delimiter = self::DEFAULT_DELIMITER): array
     {
@@ -23,7 +25,8 @@ final class Path extends Part
     }
 
     /**
-     * @param int $index 0-based
+     * @param int              $index     0-based
+     * @param non-empty-string $delimiter
      */
     public function segment(int $index, ?string $default = null, string $delimiter = self::DEFAULT_DELIMITER): ?string
     {

@@ -9,11 +9,11 @@ final class Query
 {
     use Stringable;
 
-    /** @var array|string */
+    /** @var mixed[]|string */
     private $value;
 
     /**
-     * @param array|string $value
+     * @param mixed[]|string $value
      */
     public function __construct($value)
     {
@@ -24,6 +24,9 @@ final class Query
         $this->value = $value;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function all(): array
     {
         if (\is_array($this->value)) {

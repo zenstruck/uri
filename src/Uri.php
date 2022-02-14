@@ -202,6 +202,9 @@ final class Uri
         return $this->withPath(null);
     }
 
+    /**
+     * @param mixed[]|null $query
+     */
     public function withQuery(?array $query): self
     {
         $uri = clone $this;
@@ -244,8 +247,10 @@ final class Uri
 
     public function withFragment(?string $fragment): self
     {
+        $fragment = (string) $fragment;
+
         $uri = clone $this;
-        $uri->fragment = '' === (string) $fragment ? null : \ltrim($fragment, '#');
+        $uri->fragment = '' === $fragment ? null : \ltrim($fragment, '#');
 
         return $uri;
     }

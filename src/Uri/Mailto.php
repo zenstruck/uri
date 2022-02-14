@@ -36,16 +36,25 @@ final class Mailto
         return $value instanceof self ? $value : new self(Uri::new($value));
     }
 
+    /**
+     * @return string[]
+     */
     public function to(): array
     {
         return \array_values(\array_filter(\array_map('trim', $this->uri->path()->segments(','))));
     }
 
+    /**
+     * @return string[]
+     */
     public function cc(): array
     {
         return \array_values(\array_filter(\array_map('trim', \explode(',', $this->uri->query()->get('cc', '')))));
     }
 
+    /**
+     * @return string[]
+     */
     public function bcc(): array
     {
         return \array_values(\array_filter(\array_map('trim', \explode(',', $this->uri->query()->get('bcc', '')))));

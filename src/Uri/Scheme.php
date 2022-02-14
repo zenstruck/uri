@@ -29,7 +29,9 @@ final class Scheme extends LowercasePart
     }
 
     /**
-     * @return array The scheme exploded with $delimiter
+     * @param non-empty-string $delimiter
+     *
+     * @return string[] The scheme exploded with $delimiter
      */
     public function segments(string $delimiter = self::DEFAULT_DELIMITER): array
     {
@@ -37,7 +39,8 @@ final class Scheme extends LowercasePart
     }
 
     /**
-     * @param int $index 0-based
+     * @param int              $index     0-based
+     * @param non-empty-string $delimiter
      */
     public function segment(int $index, ?string $default = null, string $delimiter = self::DEFAULT_DELIMITER): ?string
     {
@@ -49,11 +52,17 @@ final class Scheme extends LowercasePart
         return $value === $this->toString();
     }
 
+    /**
+     * @param mixed[] $value
+     */
     public function in(array $value): bool
     {
         return \in_array($this->toString(), $value, true);
     }
 
+    /**
+     * @param non-empty-string $delimiter
+     */
     public function contains(string $value, string $delimiter = self::DEFAULT_DELIMITER): bool
     {
         return \in_array($value, $this->segments($delimiter), true);
