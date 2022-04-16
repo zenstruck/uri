@@ -162,7 +162,7 @@ final class UriTest extends TestCase
     {
         return [
             ['urn:path-rootless'],
-            //['urn:path:with:colon'], todo
+            // ['urn:path:with:colon'], todo
             ['urn:/path-absolute'],
             ['urn:/'],
             // only scheme with empty path
@@ -176,9 +176,9 @@ final class UriTest extends TestCase
             // network path without scheme
             ['//example.org'],
             ['//example.org/'],
-            //['//example.org?q#h'], // todo
+            // ['//example.org?q#h'], // todo
             // only query
-            //['?q'], // todo
+            // ['?q'], // todo
             ['?q=abc&foo=bar'],
             // only fragment
             ['#fragment'],
@@ -187,7 +187,7 @@ final class UriTest extends TestCase
             [''],
             ['/'],
             ['var/run/foo.txt'],
-            //[':foo'], // todo
+            // [':foo'], // todo
             ['/var/run/foo.txt'],
             ['/var/run/foo.txt?foo=bar'],
             ['file:///var/run/foo.txt'],
