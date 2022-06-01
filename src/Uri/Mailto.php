@@ -7,7 +7,7 @@ use Zenstruck\Uri;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class Mailto
+final class Mailto implements \Stringable
 {
     use Stringable;
 

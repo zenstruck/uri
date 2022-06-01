@@ -13,7 +13,7 @@ use Zenstruck\Uri\Stringable;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class Uri
+final class Uri implements \Stringable
 {
     use Stringable;
 

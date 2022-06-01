@@ -7,7 +7,7 @@ namespace Zenstruck\Uri;
  *
  * @internal
  */
-abstract class Part
+abstract class Part implements \Stringable
 {
     use Stringable;
 
