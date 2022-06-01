@@ -2,6 +2,8 @@
 
 namespace Zenstruck\Uri;
 
+use Zenstruck\Uri\Exception\PathOutsideRoot;
+
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
@@ -61,7 +63,7 @@ final class Path extends Part
 
             switch (true) {
                 case '..' === $segment && empty($stack):
-                    throw new \RuntimeException(\sprintf('Cannot resolve absolute path for "%s". It is outside of the root.', $this->toString()));
+                    throw new PathOutsideRoot(\sprintf('Cannot resolve absolute path for "%s". It is outside of the root.', $this->toString()));
                 case '..' === $segment:
                     \array_pop($stack);
 

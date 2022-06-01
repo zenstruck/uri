@@ -5,6 +5,7 @@ namespace Zenstruck\Uri\Tests;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Uri;
+use Zenstruck\Uri\Exception\PathOutsideRoot;
 
 /**
  * @source https://github.com/guzzle/psr7/blob/7858757f390bbe4b3d81762a97d6e6e786bb70ad/tests/UriTest.php
@@ -588,7 +589,7 @@ final class UriTest extends TestCase
      */
     public function cannot_get_absolute_path_outside_root($uri): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(PathOutsideRoot::class);
 
         Uri::new($uri)->path()->absolute();
     }
