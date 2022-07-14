@@ -45,10 +45,18 @@ $uri->scheme()->toString(); // "https"
 $uri->scheme()->equals('https'); // true
 $uri->scheme()->in(['https', 'http']); // true
 
-// scheme segments - ie some kind of dsn
-Uri::new('postmark+smtp://id')->scheme()->segments('+'); // ["postmark", "smtp"]
-Uri::new('postmark+smtp://id')->scheme()->segment(0, '+'); // "postmark"
-Uri::new('postmark+smtp://id')->scheme()->contains('postmark', '+'); // true
+// scheme segments - ie some kind of dsn (delimiter defaults to "+")
+Uri::new('postmark+smtp://id')->scheme()->segments(); // ["postmark", "smtp"]
+Uri::new('postmark+smtp://id')->scheme()->segment(0); // "postmark"
+Uri::new('postmark+smtp://id')->scheme()->segment(1); // "smtp"
+Uri::new('postmark+smtp://id')->scheme()->segment(2); // null
+Uri::new('postmark+smtp://id')->scheme()->segment(2, 'default'); // "default"
+Uri::new('postmark+smtp://id')->scheme()->contains('postmark'); // true
+
+// customize the delimiter
+Uri::new('postmark-smtp://id')->scheme()->segments('-'); // ["postmark", "smtp"]
+Uri::new('postmark-smtp://id')->scheme()->segment(0, delimiter: '-'); // ["postmark", "smtp"]
+Uri::new('postmark-smtp://id')->scheme()->contains('postmark', delimiter: '-'); // true
 
 // HOST
 $uri->host()->toString(); // example.com
