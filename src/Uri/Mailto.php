@@ -6,6 +6,8 @@ use Zenstruck\Uri;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @immutable
  */
 final class Mailto implements \Stringable
 {
