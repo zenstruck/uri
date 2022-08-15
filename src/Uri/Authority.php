@@ -4,6 +4,8 @@ namespace Zenstruck\Uri;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @immutable
  */
 final class Authority implements \Stringable
 {

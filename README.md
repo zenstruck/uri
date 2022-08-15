@@ -130,8 +130,8 @@ Uri::new('http://example.com#frag%20ment')->fragment(); // "frag ment" (urldecod
 
 ## Manipulating URIs
 
-**NOTE:** `Zenstruck\Uri` is an immutable object so any manipulations results in a new
-instance.
+> **Note**: `Zenstruck\Uri` is an immutable object so any manipulations results in a new
+> instance.
 
 ```php
 use Zenstruck\Uri;
@@ -186,10 +186,152 @@ Uri::new()
 ;
 ```
 
+## Signed URIs
+
+> **Note**: `symfony/http-kernel` is required to sign and verify URIs `composer require symfony/http-kernel`.
+
+You can sign a URI:
+
+```php
+$uri = Zenstruck\Uri::new('https://example.com/some/path');
+
+(string) $uri->sign('a secret'); // "https://example.com/some/path?_hash=..."
+```
+
+### Temporary URIs
+
+Make an expiring signed URI:
+
+```php
+$uri = Zenstruck\Uri::new('https://example.com/some/path');
+
+(string) $uri->sign('a secret')->expires(new \DateTime('tomorrow')); // "https://example.com/some/path?_expires=...&_hash=..."
+
+// # of seconds
+(string) $uri->sign('a secret')->expires(3600); // "https://example.com/some/path?_expires=...&_hash=..."
+
+// date string
+(string) $uri->sign('a secret')->expires('+30 minutes'); // "https://example.com/some/path?_expires=...&_hash=..."
+```
+
+### Single-Use URIs
+
+These URIs are generated with a token that should change _once the URI has been used_.
+
+> **Note**: It is up to you to determine this token and depends on the context. This value **MUST** change
+> after the token is successfully used, else it will still be valid.
+
+```php
+$uri = Zenstruck\Uri::new('https://example.com/some/path');
+
+(string) $uri->sign('a secret')->singleUse('some-token'); // "https://example.com/some/path?_token=...&_hash=..."
+
+// create a single-use, temporary uri
+(string) $uri->sign('a secret')
+    ->singleUse('some-token')
+    ->expires('+30 minutes')
+; // "https://example.com/some/path?_expires=...&_token=...&_hash=..."
+```
+
+> **Note**: The URL is first hashed with this token, then hashed again with secret to ensure it hasn't
+> been tampered with.
+
+### `SignedUri`
+
+Calling `Zenstruck\Uri::sign()` returns a `Zenstruck\Uri\Signed\Builder` object. Calling `Builder::create()`
+returns a `Zenstruck\Uri\SignedUri` object that extends `Zenstruck\Uri` and has some helpful methods.
+
+```php
+$uri = Zenstruck\Uri::new('https://example.com/some/path');
+
+$builder = $uri->sign('a secret'); // Zenstruck\Uri\Signed\Builder
+
+$signedUri = $builder
+    ->singleUse('a token')
+    ->expires('tomorrow')
+    ->create()
+; // Zenstruck\Uri\SignedUri
+
+$signedUri->isSingleUse(); // true
+$signedUri->isTemporary(); // true
+$signedUri->expiresAt(); // \DateTimeImmutable
+
+// extends Zenstruck\Uri
+$signedUri->query(); // Zenstruck\Uri\Query
+```
+
+### Verification
+
+To verify a signed URI, create an instance of `Zenstruck\Uri\SignedUri` and call `SignedUri::isVerified()` to
+get true/false or `SignedUri::verify()` to throw specific exceptions:
+
+```php
+use Zenstruck\Uri\SignedUri;
+use Zenstruck\Uri\Signed\Exception\InvalidSignature;
+use Zenstruck\Uri\Signed\Exception\ExpiredUri;
+use Zenstruck\Uri\Signed\Exception\VerificationFailed;
+
+$signedUri = SignedUri::new('http://example.com/some/path?_hash=...');
+
+// can also create from an instance of Symfony\Component\HttpFoundation\Request
+/** @var Symfony\Component\HttpFoundation\Request $request */
+$signedUri = SignedUri::new($request);
+
+$signedUri->isVerified('a secret'); // true/false
+
+try {
+    $signedUri->verify('a secret');
+} catch (VerificationFailed $e) {
+    $e::REASON; // ie "Invalid signature."
+    $e->uri(); // SignedUri
+}
+
+// catch specific exceptions
+try {
+    $signedUri->verify('a secret');
+} catch (InvalidSignature $e) {
+    $e::REASON; // "Invalid signature."
+    $e->uri(); // SignedUri
+} catch (ExpiredUri $e) {
+    $e::REASON; // "URI has expired."
+    $e->uri(); // SignedUri
+    $e->expiredAt(); // \DateTimeImmutable
+}
+```
+
+#### Single-Use Verification
+
+For validating [single-use URIs](#single-use-uris), you need to pass a token to the verify methods:
+
+```php
+use Zenstruck\Uri\Signed\Exception\InvalidSignature;
+use Zenstruck\Uri\Signed\Exception\ExpiredUri;
+use Zenstruck\Uri\Signed\Exception\UriAlreadyUsed;
+
+/** @var \Zenstruck\Uri\SignedUri $uri */
+
+$uri->isVerified('a secret', 'some token'); // true/false
+
+// catch specific exceptions
+try {
+    $signedUri->verify('a secret', 'some token');
+} catch (InvalidSignature $e) {
+    $e::REASON; // "Invalid signature."
+    $e->uri(); // SignedUri
+} catch (ExpiredUri $e) {
+    $e::REASON; // "URI has expired."
+    $e->uri(); // SignedUri
+    $e->expiredAt(); // \DateTimeImmutable
+} catch (UriAlreadyUsed $e) {
+    $e::REASON; // "URI has already been used."
+    $e->uri(); // SignedUri
+}
+```
+
 ## `Mailto` URIs
 
-**NOTE:** `Zenstruck\Uri\Mailto` is an immutable object so any manipulations results in a new
-instance.
+> **Note**: `Zenstruck\Uri\Mailto` is an immutable object so any manipulations results in a new
+> instance.
 
 ```php
 use Zenstruck\Uri\Mailto;

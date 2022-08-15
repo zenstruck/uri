@@ -3,17 +3,21 @@
 namespace Zenstruck;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\UriSigner;
 use Zenstruck\Uri\Authority;
 use Zenstruck\Uri\Host;
 use Zenstruck\Uri\Path;
 use Zenstruck\Uri\Query;
 use Zenstruck\Uri\Scheme;
+use Zenstruck\Uri\Signed\Builder;
 use Zenstruck\Uri\Stringable;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @immutable
  */
-final class Uri implements \Stringable
+class Uri implements \Stringable
 {
     use Stringable;
 
@@ -23,7 +27,7 @@ final class Uri implements \Stringable
     private Query $query;
     private ?string $fragment;
 
-    public function __construct(?string $value = null)
+    final public function __construct(?string $value = null)
     {
         if (false === $components = \parse_url((string) $value)) {
             throw new \InvalidArgumentException("Unable to parse \"{$value}\".");
@@ -43,65 +47,67 @@ final class Uri implements \Stringable
 
     /**
      * @param string|self|Request|null $value
+     *
+     * @return static
      */
-    public static function new($value = null): self
+    final public static function new($value = null): self
     {
         if ($value instanceof Request) {
-            return self::new($value->getUri())
+            return static::new($value->getUri())
                 ->withUser($value->getUser())
                 ->withPass($value->getPassword())
             ;
         }
 
-        return $value instanceof self ? $value : new self($value);
+        return $value instanceof static ? $value : new static($value);
     }
 
-    public function scheme(): Scheme
+    final public function scheme(): Scheme
     {
         return $this->scheme;
     }
 
-    public function host(): Host
+    final public function host(): Host
     {
         return $this->authority->host();
     }
 
-    public function port(): ?int
+    final public function port(): ?int
     {
         return $this->authority->port();
     }
 
-    public function user(): ?string
+    final public function user(): ?string
     {
         return $this->authority->username();
     }
 
-    public function pass(): ?string
+    final public function pass(): ?string
     {
         return $this->authority->password();
     }
 
-    public function path(): Path
+    final public function path(): Path
     {
         return $this->path;
     }
 
-    public function query(): Query
+    final public function query(): Query
     {
         return $this->query;
     }
 
-    public function fragment(): ?string
+    final public function fragment(): ?string
     {
         return $this->fragment;
     }
 
-    public function authority(): Authority
+    final public function authority(): Authority
     {
         return $this->authority;
     }
 
-    public function isAbsolute(): bool
+    final public function isAbsolute(): bool
     {
         return !$this->scheme->isEmpty();
     }
@@ -109,12 +115,15 @@ final class Uri implements \Stringable
     /**
      * @return int|null The explicit port or the default for the scheme
      */
-    public function guessPort(): ?int
+    final public function guessPort(): ?int
     {
         return $this->port() ?? $this->scheme()->defaultPort();
     }
 
-    public function withHost(?string $host): self
+    /**
+     * @return $this
+     */
+    final public function withHost(?string $host): self
     {
         $uri = clone $this;
         $uri->authority = $this->authority->withHost($host);
@@ -122,12 +131,18 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function withoutHost(): self
+    /**
+     * @return $this
+     */
+    final public function withoutHost(): self
     {
         return $this->withHost(null);
     }
 
-    public function withScheme(?string $scheme): self
+    /**
+     * @return $this
+     */
+    final public function withScheme(?string $scheme): self
     {
         $uri = clone $this;
         $uri->scheme = new Scheme((string) $scheme);
@@ -135,12 +150,18 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function withoutScheme(): self
+    /**
+     * @return $this
+     */
+    final public function withoutScheme(): self
     {
         return $this->withScheme(null);
     }
 
-    public function withPort(?int $port): self
+    /**
+     * @return $this
+     */
+    final public function withPort(?int $port): self
     {
         $uri = clone $this;
         $uri->authority = $this->authority->withPort($port);
@@ -148,12 +169,18 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function withoutPort(): self
+    /**
+     * @return $this
+     */
+    final public function withoutPort(): self
     {
         return $this->withPort(null);
     }
 
-    public function withUser(?string $user): self
+    /**
+     * @return $this
+     */
+    final public function withUser(?string $user): self
     {
         $uri = clone $this;
         $uri->authority = $this->authority->withUsername($user);
@@ -161,12 +188,18 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function withoutUser(): self
+    /**
+     * @return $this
+     */
+    final public function withoutUser(): self
     {
         return $this->withUser(null);
     }
 
-    public function withPass(?string $pass): self
+    /**
+     * @return $this
+     */
+    final public function withPass(?string $pass): self
     {
         $uri = clone $this;
         $uri->authority = $this->authority->withPassword($pass);
@@ -174,12 +207,18 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function withoutPass(): self
+    /**
+     * @return $this
+     */
+    final public function withoutPass(): self
     {
         return $this->withPass(null);
     }
 
-    public function withPath(?string $path): self
+    /**
+     * @return $this
+     */
+    final public function withPath(?string $path): self
     {
         $uri = clone $this;
         $uri->path = new Path((string) $path);
@@ -187,25 +226,36 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function appendPath(string $path): self
+    /**
+     * @return $this
+     */
+    final public function appendPath(string $path): self
     {
         return $this->withPath($this->path->append($path));
     }
 
-    public function prependPath(string $path): self
+    /**
+     * @return $this
+     */
+    final public function prependPath(string $path): self
     {
         return $this->withPath($this->path->prepend($path));
     }
 
-    public function withoutPath(): self
+    /**
+     * @return $this
+     */
+    final public function withoutPath(): self
     {
         return $this->withPath(null);
     }
 
     /**
      * @param mixed[]|null $query
+     *
+     * @return $this
      */
-    public function withQuery(?array $query): self
+    final public function withQuery(?array $query): self
     {
         $uri = clone $this;
         $uri->query = new Query($query ?? []);
@@ -215,8 +265,10 @@ final class Uri implements \Stringable
 
     /**
      * @param mixed $value
+     *
+     * @return $this
      */
-    public function withQueryParam(string $param, $value): self
+    final public function withQueryParam(string $param, $value): self
     {
         $uri = clone $this;
         $uri->query = $this->query->withQueryParam($param, $value);
@@ -224,7 +276,10 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function withOnlyQueryParams(string ...$params): self
+    /**
+     * @return $this
+     */
+    final public function withOnlyQueryParams(string ...$params): self
     {
         $uri = clone $this;
         $uri->query = $this->query->withOnlyQueryParams(...$params);
@@ -232,12 +287,18 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function withoutQuery(): self
+    /**
+     * @return $this
+     */
+    final public function withoutQuery(): self
     {
         return $this->withQuery(null);
     }
 
-    public function withoutQueryParams(string ...$params): self
+    /**
+     * @return $this
+     */
+    final public function withoutQueryParams(string ...$params): self
     {
         $uri = clone $this;
         $uri->query = $this->query->withoutQueryParams(...$params);
@@ -245,7 +306,10 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function withFragment(?string $fragment): self
+    /**
+     * @return $this
+     */
+    final public function withFragment(?string $fragment): self
     {
         $fragment = (string) $fragment;
 
@@ -255,12 +319,23 @@ final class Uri implements \Stringable
         return $uri;
     }
 
-    public function withoutFragment(): self
+    /**
+     * @return $this
+     */
+    final public function withoutFragment(): self
     {
         return $this->withFragment(null);
     }
 
-    protected function generateString(): string
+    /**
+     * @param string|UriSigner $secret
+     */
+    final public function sign($secret): Builder
+    {
+        return new Builder($this, $secret);
+    }
+
+    final protected function generateString(): string
     {
         $ret = '';
 
