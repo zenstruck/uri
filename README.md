@@ -241,6 +241,9 @@ $uri = Zenstruck\Uri::new('https://example.com/some/path');
 Calling `Zenstruck\Uri::sign()` returns a `Zenstruck\Uri\Signed\Builder` object. Calling `Builder::create()`
 returns a `Zenstruck\Uri\SignedUri` object that extends `Zenstruck\Uri` and has some helpful methods.
 
+> **Note**: `Zenstruck\Uri\Signed\Builder` and `Zenstruck\Uri\SignedUri` are immutable objects so any
+> manipulations results in a new instance.
+
 ```php
 $uri = Zenstruck\Uri::new('https://example.com/some/path');
 
