@@ -361,9 +361,10 @@ $mailto->body(); // "my body"
 
 ## Twig extension
 
-A [twig](https://twig.symfony.com/) extension providing `uri` and `mailto` filters is included.
+A [twig](https://twig.symfony.com/) extension providing `uri`, `mailto` filters and
+functions is included.
 
-Manual activation:
+### Manual activation
 
 ```php
 /* @var \Twig\Environment $twig */
@@ -371,7 +372,7 @@ Manual activation:
 $twig->addExtension(new \Zenstruck\Uri\Bridge\Twig\UriExtension());
 ```
 
-Symfony full-stack activation:
+### Symfony full-stack activation
 
 ```yaml
 # config/packages/zenstruck_uri.yaml
@@ -381,4 +382,16 @@ Zenstruck\Uri\Bridge\Twig\UriExtension: ~
 # If not using auto-configuration:
 Zenstruck\Uri\Bridge\Twig\UriExtension:
     tag: twig.extension
+```
+
+### Usage
+
+```twig
+{# Filters: #}
+{{ 'https://example.com'|uri.withPath('some/path').withQueryParam('q', 'term') }} {# https://example.com/some/path?q=term #}
+{{ 'kevin@example.com'|mailto.withSubject('my subject') }} {# mailto:kevin%40example.com?subject=my%20subject #}
+
+{# Functions: #}
+{{ uri().withScheme('https').withHost('example.com') }} {# https://example.com #}
+{{ mailto().withTo('kevin@example.com').withSubject('my subject') }} {# mailto:kevin%40example.com?subject=my%20subject #}
 ```

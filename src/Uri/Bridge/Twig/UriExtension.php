@@ -4,6 +4,7 @@ namespace Zenstruck\Uri\Bridge\Twig;
 
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
+use Twig\TwigFunction;
 use Zenstruck\Uri;
 use Zenstruck\Uri\Mailto;
 
@@ -12,6 +13,14 @@ use Zenstruck\Uri\Mailto;
  */
 final class UriExtension extends AbstractExtension
 {
+    public function getFunctions(): array
+    {
+        return [
+            new TwigFunction('uri', [Uri::class, 'new']),
+            new TwigFunction('mailto', [Mailto::class, 'new']),
+        ];
+    }
+
     public function getFilters(): array
     {
         return [

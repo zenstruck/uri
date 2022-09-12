@@ -1,0 +1,12 @@
+--TEST--
+"uri" function
+--TEMPLATE--
+{{ uri('https://example.com:8080/foo').host }}
+{{ uri('https://example.com:8080/foo') }}
+{{ uri().withScheme('ftp').withHost('example.com') }}
+--DATA--
+return []
+--EXPECT--
+example.com
+https://example.com:8080/foo
+ftp://example.com
