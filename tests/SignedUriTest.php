@@ -18,6 +18,7 @@ final class SignedUriTest extends TestCase
 {
     /**
      * @test
+     *
      * @dataProvider validSignedUrlProvider
      */
     public function can_sign_url($uri, $secret, $expiresAt = null, $singleUseToken = null): void
@@ -72,6 +73,7 @@ final class SignedUriTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider invalidSignedUrlProvider
      */
     public function invalid_signed_url(SignedUri $uri, $secret, $expectedException, $singleUseToken = null): void
