@@ -12,6 +12,7 @@ final class MailtoTest extends TestCase
 {
     /**
      * @test
+     *
      * @dataProvider convertToStringProvider
      */
     public function convert_to_string($input, $expected): void

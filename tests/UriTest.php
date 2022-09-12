@@ -152,6 +152,7 @@ final class UriTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider getValidUris
      */
     public function valid_uris_stay_valid(string $input): void
@@ -217,6 +218,7 @@ final class UriTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider getInvalidUris
      */
     public function invalid_uris_throw_exception(string $input): void
@@ -557,6 +559,7 @@ final class UriTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider validAbsolutePaths
      */
     public function can_get_absolute_path($uri, $expected): void
@@ -585,6 +588,7 @@ final class UriTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider invalidAbsolutePaths
      */
     public function cannot_get_absolute_path_outside_root($uri): void
@@ -860,6 +864,7 @@ final class UriTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider uriComponentsEncodingProvider
      */
     public function uri_components_are_properly_encoded($input, $expectedPath, $expectedQ, $expectedUser, $expectedPass, $expectedFragment, $expectedString): void
@@ -885,6 +890,7 @@ final class UriTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider guessPortProvider
      */
     public function can_guess_port(string $uri, ?int $expectedPort): void
