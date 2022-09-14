@@ -15,16 +15,22 @@ final class Builder implements \Stringable
 {
     private Uri $uri;
     private UriSigner $signer;
-    private ?\DateTimeInterface $expiresAt = null;
+    private ?\DateTimeImmutable $expiresAt = null;
     private ?string $singleUseToken = null;
 
     /**
+     * @internal
+     *
      * @param string|UriSigner $secret
      */
     public function __construct(Uri $uri, $secret)
     {
         if (!\class_exists(UriSigner::class)) {
             throw new \LogicException('symfony/http-kernel is required to sign URIs. composer require symfony/http-kernel.');
+        }
+
+        if ($uri instanceof SignedUri) {
+            throw new \LogicException(\sprintf('"%s" is already signed.', $uri));
         }
 
         $this->uri = $uri;
@@ -47,15 +53,19 @@ final class Builder implements \Stringable
     public function expires($when): self
     {
         if (\is_numeric($when)) {
-            $when = \DateTime::createFromFormat('U', (string) (\time() + $when));
+            $when = \DateTimeImmutable::createFromFormat('U', (string) (\time() + $when));
         }
 
         if (\is_string($when)) {
-            $when = new \DateTime($when);
+            $when = new \DateTimeImmutable($when);
         }
 
         if ($when instanceof \DateInterval) {
             $when = (new \DateTime('now'))->add($when);
+        }
+
+        if ($when instanceof \DateTime) {
+            $when = \DateTimeImmutable::createFromMutable($when);
         }
 
         if (!$when instanceof \DateTimeInterface) {
@@ -83,16 +93,16 @@ final class Builder implements \Stringable
 
     public function create(): SignedUri
     {
-        $uri = $this->uri;
+        return SignedUri::new($this);
+    }
 
-        if ($this->expiresAt) {
-            $uri = $uri->withQueryParam(SignedUri::EXPIRES_AT_KEY, $this->expiresAt->getTimestamp());
-        }
-
-        if ($this->singleUseToken) {
-            $uri = (new UriSigner($this->singleUseToken, SignedUri::SINGLE_USE_TOKEN_KEY))->sign($uri);
-        }
-
-        return new SignedUri($this->signer->sign($uri));
+    /**
+     * @internal
+     *
+     * @return array{0:Uri,1:UriSigner,2:\DateTimeImmutable|null,3:string|null}
+     */
+    public function context(): array
+    {
+        return [$this->uri, $this->signer, $this->expiresAt, $this->singleUseToken];
     }
 }

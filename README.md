@@ -7,6 +7,7 @@ Object-oriented wrapper/manipulator for `parse_url` with the following features:
 * Read URI _parts_ as objects (`Scheme`, `Host`, `Path`, `Query`), each with their own
   set of features.
 * Manipulate URI parts or build URI's using a fluent builder API.
+* Sign and verify URI's and make them temporary and/or single-use.
 * Mailto object to help with reading/manipulating `mailto:` URIs.
 * Optional [twig](https://twig.symfony.com/) extension.
 
@@ -225,61 +226,44 @@ These URIs are generated with a token that should change _once the URI has been 
 $uri = Zenstruck\Uri::new('https://example.com/some/path');
 
 (string) $uri->sign('a secret')->singleUse('some-token'); // "https://example.com/some/path?_token=...&_hash=..."
-
-// create a single-use, temporary uri
-(string) $uri->sign('a secret')
-    ->singleUse('some-token')
-    ->expires('+30 minutes')
-; // "https://example.com/some/path?_expires=...&_token=...&_hash=..."
 ```
 
 > **Note**: The URL is first hashed with this token, then hashed again with secret to ensure it hasn't
 > been tampered with.
 
-### `SignedUri`
+### Signed URI Builder
 
-Calling `Zenstruck\Uri::sign()` returns a `Zenstruck\Uri\Signed\Builder` object. Calling `Builder::create()`
-returns a `Zenstruck\Uri\SignedUri` object that extends `Zenstruck\Uri` and has some helpful methods.
-
-> **Note**: `Zenstruck\Uri\Signed\Builder` is immutable objects so any manipulations results in a new instance.
-
-> **Note**: `Zenstruck\Uri\SignedUri` cannot be cloned so the [manipulation methods](#manipulating-uris) cannot be called.
+Calling `Zenstruck\Uri::sign()` returns a `Zenstruck\Uri\Signed\Builder` object that can be used to
+create single-use _and_ temporary URIs.
 
 ```php
 $uri = Zenstruck\Uri::new('https://example.com/some/path');
 
 $builder = $uri->sign('a secret'); // Zenstruck\Uri\Signed\Builder
 
-$signedUri = $builder
-    ->singleUse('a token')
-    ->expires('tomorrow')
-    ->create()
-; // Zenstruck\Uri\SignedUri
+// create a single-use, temporary uri
+$builder = $uri->sign('a secret')
+    ->singleUse('some-token')
+    ->expires('+30 minutes')
+;
 
-$signedUri->isSingleUse(); // true
-$signedUri->isTemporary(); // true
-$signedUri->expiresAt(); // \DateTimeImmutable
-
-// extends Zenstruck\Uri
-$signedUri->query(); // Zenstruck\Uri\Query
+(string) $builder; // "https://example.com/some/path?_expires=...&_token=...&_hash=..."
 ```
+
+> **Note**: `Zenstruck\Uri\Signed\Builder` is immutable objects so any manipulations results in a new instance.
 
 ### Verification
 
-To verify a signed URI, create an instance of `Zenstruck\Uri\SignedUri` and call `SignedUri::isVerified()` to
-get true/false or `SignedUri::verify()` to throw specific exceptions:
+To verify a signed URI, create an instance of `Zenstruck\Uri` and call `Uri::isVerified()` to
+get true/false or `Uri::verify()` to throw specific exceptions:
 
 ```php
-use Zenstruck\Uri\SignedUri;
+use Zenstruck\Uri;
 use Zenstruck\Uri\Signed\Exception\InvalidSignature;
 use Zenstruck\Uri\Signed\Exception\ExpiredUri;
 use Zenstruck\Uri\Signed\Exception\VerificationFailed;
 
-$signedUri = SignedUri::new('http://example.com/some/path?_hash=...');
-
-// can also create from an instance of Symfony\Component\HttpFoundation\Request
-/** @var Symfony\Component\HttpFoundation\Request $request */
-$signedUri = SignedUri::new($request);
+$signedUri = Uri::new('http://example.com/some/path?_hash=...');
 
 $signedUri->isVerified('a secret'); // true/false
 
@@ -287,7 +271,7 @@ try {
     $signedUri->verify('a secret');
 } catch (VerificationFailed $e) {
     $e::REASON; // ie "Invalid signature."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
 }
 
 // catch specific exceptions
@@ -295,10 +279,10 @@ try {
     $signedUri->verify('a secret');
 } catch (InvalidSignature $e) {
     $e::REASON; // "Invalid signature."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
 } catch (ExpiredUri $e) {
     $e::REASON; // "URI has expired."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
     $e->expiredAt(); // \DateTimeImmutable
 }
 ```
@@ -312,7 +296,7 @@ use Zenstruck\Uri\Signed\Exception\InvalidSignature;
 use Zenstruck\Uri\Signed\Exception\ExpiredUri;
 use Zenstruck\Uri\Signed\Exception\UriAlreadyUsed;
 
-/** @var \Zenstruck\Uri\SignedUri $uri */
+/** @var \Zenstruck\Uri $uri */
 
 $uri->isVerified('a secret', 'some token'); // true/false
 
@@ -321,15 +305,46 @@ try {
     $signedUri->verify('a secret', 'some token');
 } catch (InvalidSignature $e) {
     $e::REASON; // "Invalid signature."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
 } catch (ExpiredUri $e) {
     $e::REASON; // "URI has expired."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
     $e->expiredAt(); // \DateTimeImmutable
 } catch (UriAlreadyUsed $e) {
     $e::REASON; // "URI has already been used."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
 }
+```
+
+### `SignedUri`
+
+`Zenstruck\Uri\Signed\Builder::create()` and `Zenstruck\Uri::verify()` both return a `Zenstruck\Uri\SignedUri`
+object that extends `Zenstruck\Uri` and has some helpful methods.
+
+> **Note**: `Zenstruck\Uri\SignedUri` is:
+> 1. Always considered verified.
+> 2. Cannot be cloned so the [manipulation methods](#manipulating-uris) cannot be called.
+> 3. Cannot be constructed directly, must be created through `Uri::verify()` or `Builder::create()`
+
+```php
+$uri = Zenstruck\Uri::new('https://example.com/some/path');
+
+// create from the builder
+$signedUri = $uri->sign('a secret')
+    ->singleUse('a token')
+    ->expires('tomorrow')
+    ->create()
+; // Zenstruck\Uri\SignedUri
+
+// create from verify
+$uri->verify('a secret'); // Zenstruck\Uri\SignedUri
+
+$signedUri->isSingleUse(); // true
+$signedUri->isTemporary(); // true
+$signedUri->expiresAt(); // \DateTimeImmutable
+
+// extends Zenstruck\Uri
+$signedUri->query(); // Zenstruck\Uri\Query
 ```
 
 ## `Mailto` URIs

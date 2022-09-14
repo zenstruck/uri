@@ -10,6 +10,11 @@ use Zenstruck\Uri\Path;
 use Zenstruck\Uri\Query;
 use Zenstruck\Uri\Scheme;
 use Zenstruck\Uri\Signed\Builder;
+use Zenstruck\Uri\Signed\Exception\ExpiredUri;
+use Zenstruck\Uri\Signed\Exception\InvalidSignature;
+use Zenstruck\Uri\Signed\Exception\UriAlreadyUsed;
+use Zenstruck\Uri\Signed\Exception\VerificationFailed;
+use Zenstruck\Uri\SignedUri;
 use Zenstruck\Uri\Stringable;
 
 /**
@@ -30,7 +35,7 @@ class Uri implements \Stringable
     /**
      * @param string|self|null $value
      */
-    final public function __construct($value = null)
+    public function __construct($value = null)
     {
         if ($value instanceof self) {
             $this->createFromSelf($value);
@@ -56,19 +61,17 @@ class Uri implements \Stringable
 
     /**
      * @param string|self|Request|null $value
-     *
-     * @return static
      */
-    final public static function new($value = null): self
+    public static function new($value = null): self
     {
         if ($value instanceof Request) {
-            $value = (new self($value->getUri()))
+            return (new self($value->getUri()))
                 ->withUser($value->getUser())
                 ->withPass($value->getPassword())
             ;
         }
 
-        return $value instanceof static ? $value : new static($value);
+        return $value instanceof self && self::class === \get_class($value) ? $value : new self($value);
     }
 
     final public function scheme(): Scheme
@@ -339,9 +342,37 @@ class Uri implements \Stringable
     /**
      * @param string|UriSigner $secret
      */
-    public function sign($secret): Builder
+    final public function sign($secret): Builder
     {
         return new Builder($this, $secret);
+    }
+
+    /**
+     * @param string|UriSigner $secret
+     * @param string|null      $singleUseToken If passed, this value MUST change once the URL is considered "used"
+     *
+     * @throws ExpiredUri       if the URI has expired
+     * @throws UriAlreadyUsed   if the URI has already been used
+     * @throws InvalidSignature if the URI could not be verified
+     */
+    final public function verify($secret, ?string $singleUseToken = null): SignedUri
+    {
+        return SignedUri::createVerified($this, $secret, $singleUseToken);
+    }
+
+    /**
+     * @param string|UriSigner $secret
+     * @param string|null      $singleUseToken If passed, this value MUST change once the URL is considered "used"
+     */
+    public function isVerified($secret, ?string $singleUseToken = null): bool
+    {
+        try {
+            $this->verify($secret, $singleUseToken);
+
+            return true;
+        } catch (VerificationFailed $e) {
+            return false;
+        }
     }
 
     final protected function generateString(): string
