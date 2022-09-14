@@ -53,7 +53,7 @@ class Uri implements \Stringable
     final public static function new($value = null): self
     {
         if ($value instanceof Request) {
-            return static::new($value->getUri())
+            $value = (new self($value->getUri()))
                 ->withUser($value->getUser())
                 ->withPass($value->getPassword())
             ;
@@ -330,7 +330,7 @@ class Uri implements \Stringable
     /**
      * @param string|UriSigner $secret
      */
-    final public function sign($secret): Builder
+    public function sign($secret): Builder
     {
         return new Builder($this, $secret);
     }

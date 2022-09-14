@@ -3,6 +3,7 @@
 namespace Zenstruck\Uri\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\UriSigner;
 use Zenstruck\Uri;
 use Zenstruck\Uri\Signed\Exception\ExpiredUri;
@@ -76,8 +77,10 @@ final class SignedUriTest extends TestCase
      *
      * @dataProvider invalidSignedUrlProvider
      */
-    public function invalid_signed_url(SignedUri $uri, $secret, $expectedException, $singleUseToken = null): void
+    public function invalid_signed_url($uri, $secret, $expectedException, $singleUseToken = null): void
     {
+        $uri = SignedUri::new($uri);
+
         $this->assertFalse($uri->isVerified($secret, $singleUseToken));
 
         try {
@@ -103,6 +106,7 @@ final class SignedUriTest extends TestCase
         yield [$builder->singleUse('token')->create(), '1234', InvalidSignature::class];
         yield [$builder->create(), '1234', InvalidSignature::class, 'token'];
         yield [$builder->singleUse('token')->create(), '1234', UriAlreadyUsed::class, 'invalid'];
+        yield [Request::create('foo/bar'), '4321', InvalidSignature::class];
     }
 
     /**
@@ -138,5 +142,29 @@ final class SignedUriTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         Uri::new('/foo')->sign('1234')->expires(new \stdClass());
+    }
+
+    /**
+     * @test
+     */
+    public function cannot_be_cloned(): void
+    {
+        $uri = SignedUri::new('/foo');
+
+        $this->expectException(\LogicException::class);
+
+        clone $uri;
+    }
+
+    /**
+     * @test
+     */
+    public function cannot_resign(): void
+    {
+        $uri = SignedUri::new('/foo');
+
+        $this->expectException(\BadMethodCallException::class);
+
+        $uri->sign('secret');
     }
 }

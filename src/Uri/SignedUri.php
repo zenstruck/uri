@@ -4,6 +4,7 @@ namespace Zenstruck\Uri;
 
 use Symfony\Component\HttpKernel\UriSigner;
 use Zenstruck\Uri;
+use Zenstruck\Uri\Signed\Builder;
 use Zenstruck\Uri\Signed\Exception\ExpiredUri;
 use Zenstruck\Uri\Signed\Exception\InvalidSignature;
 use Zenstruck\Uri\Signed\Exception\UriAlreadyUsed;
@@ -16,6 +17,11 @@ final class SignedUri extends Uri
 {
     public const EXPIRES_AT_KEY = '_expires';
     public const SINGLE_USE_TOKEN_KEY = '_token';
+
+    public function __clone()
+    {
+        throw new \LogicException(\sprintf('%s (%s) cannot be cloned.', static::class, $this));
+    }
 
     /**
      * @param string|UriSigner $secret
@@ -61,7 +67,7 @@ final class SignedUri extends Uri
         $parameter = \Closure::bind(fn(UriSigner $signer) => $signer->parameter, null, $signer);
 
         // remove the _hash query parameter
-        $uri = $this->withoutQueryParams($parameter($signer));
+        $uri = (new Uri($this))->withoutQueryParams($parameter($signer));
 
         if (!(new UriSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY))->check($uri)) { // @phpstan-ignore-line
             throw new UriAlreadyUsed($this);
@@ -100,5 +106,10 @@ final class SignedUri extends Uri
     public function isSingleUse(): bool
     {
         return $this->query()->has(self::SINGLE_USE_TOKEN_KEY);
+    }
+
+    public function sign($secret): Builder
+    {
+        throw new \BadMethodCallException(\sprintf('%s (%s) is already signed.', static::class, $this));
     }
 }
