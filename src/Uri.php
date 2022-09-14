@@ -27,8 +27,17 @@ class Uri implements \Stringable
     private Query $query;
     private ?string $fragment;
 
-    final public function __construct(?string $value = null)
+    /**
+     * @param string|self|null $value
+     */
+    final public function __construct($value = null)
     {
+        if ($value instanceof self) {
+            $this->createFromSelf($value);
+
+            return;
+        }
+
         if (false === $components = \parse_url((string) $value)) {
             throw new \InvalidArgumentException("Unable to parse \"{$value}\".");
         }
@@ -365,5 +374,18 @@ class Uri implements \Stringable
         }
 
         return $ret;
+    }
+
+    private function createFromSelf(self $value): void
+    {
+        $this->scheme = $value->scheme;
+        $this->authority = $value->authority;
+        $this->path = $value->path;
+        $this->query = $value->query;
+        $this->fragment = $value->fragment;
+
+        if (isset($value->cachedString)) {
+            $this->cachedString = $value->cachedString;
+        }
     }
 }
