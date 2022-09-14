@@ -16,11 +16,12 @@
         "symfony/polyfill-php80": "^1.25"
     },
     "require-dev": {
+        "doctrine/annotations": "^1.0",
         "phpstan/phpstan": "^1.4",
-        "symfony/http-foundation": "^4.4|^5.0|^6.0",
-        "symfony/http-kernel": "^4.4|^5.0|^6.0",
+        "symfony/browser-kit": "^4.4|^5.0|^6.0",
+        "symfony/framework-bundle": "^4.4|^5.0|^6.0",
         "symfony/phpunit-bridge": "^6.1",
-        "twig/twig": "^2.8|^3.0"
+        "symfony/twig-bundle": "^4.4|^5.0|^6.0"
     },
     "config": {
         "preferred-install": "dist",

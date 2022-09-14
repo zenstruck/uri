@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    uses: zenstruck/.github/.github/workflows/php-test.yml@main
+    uses: zenstruck/.github/.github/workflows/php-test-symfony.yml@main
     with:
       phpunit: simple-phpunit
 
@@ -23,6 +23,8 @@ jobs:
 
   cs-check:
     uses: zenstruck/.github/.github/workflows/php-cs-fixer.yml@main
+    with:
+      php: 8
 
   sca:
     uses: zenstruck/.github/.github/workflows/php-stan.yml@main

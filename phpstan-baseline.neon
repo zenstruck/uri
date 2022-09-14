@@ -1,6 +1,11 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\NodeDefinition\\:\\:children\\(\\)\\.$#"
+			count: 1
+			path: src/Uri/Bridge/Symfony/DependencyInjection/ZenstruckUriExtension.php
+
+		-
 			message: "#^Method Zenstruck\\\\Uri\\\\Query\\:\\:all\\(\\) should return array but returns string\\.$#"
 			count: 1
 			path: src/Uri/Query.php

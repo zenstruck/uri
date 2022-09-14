@@ -69,7 +69,7 @@ final class Builder implements \Stringable
         }
 
         if (!$when instanceof \DateTimeInterface) {
-            throw new \InvalidArgumentException(\sprintf('%s is not a valid expires at.', get_debug_type($when)));
+            throw new \InvalidArgumentException(\sprintf('%s is not a valid expires at.', \get_debug_type($when)));
         }
 
         $clone = clone $this;
