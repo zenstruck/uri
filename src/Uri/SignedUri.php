@@ -46,7 +46,7 @@ final class SignedUri extends Uri
         $expiresAt = $this->expiresAt();
 
         if ($expiresAt && $expiresAt < new \DateTimeImmutable('now')) {
-            throw new ExpiredUri($this);
+            throw new ExpiredUri($this, $expiresAt);
         }
 
         $singleUseSignature = $this->query()->get(self::SINGLE_USE_TOKEN_KEY);

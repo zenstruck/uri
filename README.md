@@ -287,7 +287,7 @@ try {
     $signedUri->verify('a secret');
 } catch (VerificationFailed $e) {
     $e::REASON; // ie "Invalid signature."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
 }
 
 // catch specific exceptions
@@ -295,10 +295,10 @@ try {
     $signedUri->verify('a secret');
 } catch (InvalidSignature $e) {
     $e::REASON; // "Invalid signature."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
 } catch (ExpiredUri $e) {
     $e::REASON; // "URI has expired."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
     $e->expiredAt(); // \DateTimeImmutable
 }
 ```
@@ -321,14 +321,14 @@ try {
     $signedUri->verify('a secret', 'some token');
 } catch (InvalidSignature $e) {
     $e::REASON; // "Invalid signature."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
 } catch (ExpiredUri $e) {
     $e::REASON; // "URI has expired."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
     $e->expiredAt(); // \DateTimeImmutable
 } catch (UriAlreadyUsed $e) {
     $e::REASON; // "URI has already been used."
-    $e->uri(); // SignedUri
+    $e->uri(); // \Zenstruck\Uri
 }
 ```
 
