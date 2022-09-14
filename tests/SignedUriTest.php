@@ -37,25 +37,24 @@ final class SignedUriTest extends TestCase
 
         $signed = $builder->create();
 
+        $this->assertTrue(Uri::new($signed)->isVerified($secret, $singleUseToken));
         $this->assertSame((string) $builder, (string) $signed);
-
-        $this->assertTrue($signed->isVerified($secret, $singleUseToken));
         $this->assertTrue($signed->query()->has('_hash'));
 
         if ($expiresAt) {
             $this->assertTrue($signed->isTemporary());
-            $this->assertTrue($signed->query()->has(SignedUri::EXPIRES_AT_KEY));
+            $this->assertTrue($signed->query()->has('_expires'));
         } else {
             $this->assertFalse($signed->isTemporary());
-            $this->assertFalse($signed->query()->has(SignedUri::EXPIRES_AT_KEY));
+            $this->assertFalse($signed->query()->has('_expires'));
         }
 
         if ($singleUseToken) {
             $this->assertTrue($signed->isSingleUse());
-            $this->assertTrue($signed->query()->has(SignedUri::SINGLE_USE_TOKEN_KEY));
+            $this->assertTrue($signed->query()->has('_token'));
         } else {
             $this->assertFalse($signed->isSingleUse());
-            $this->assertFalse($signed->query()->has(SignedUri::SINGLE_USE_TOKEN_KEY));
+            $this->assertFalse($signed->query()->has('_token'));
         }
     }
 
@@ -79,7 +78,7 @@ final class SignedUriTest extends TestCase
      */
     public function invalid_signed_url($uri, $secret, $expectedException, $singleUseToken = null): void
     {
-        $uri = SignedUri::new($uri);
+        $uri = Uri::new($uri);
 
         $this->assertFalse($uri->isVerified($secret, $singleUseToken));
 
@@ -149,7 +148,7 @@ final class SignedUriTest extends TestCase
      */
     public function cannot_be_cloned(): void
     {
-        $uri = SignedUri::new('/foo');
+        $uri = Uri::new('/foo')->sign('foo')->create();
 
         $this->expectException(\LogicException::class);
 
@@ -159,12 +158,46 @@ final class SignedUriTest extends TestCase
     /**
      * @test
      */
-    public function cannot_resign(): void
+    public function cannot_re_sign(): void
     {
-        $uri = SignedUri::new('/foo');
+        $uri = Uri::new('/foo')->sign('foo')->create();
 
-        $this->expectException(\BadMethodCallException::class);
+        $this->expectException(\LogicException::class);
 
         $uri->sign('secret');
+    }
+
+    /**
+     * @test
+     */
+    public function cannot_re_verify(): void
+    {
+        $uri = Uri::new('/foo')->sign('foo')->create();
+
+        $this->expectException(\LogicException::class);
+
+        $uri->verify('secret');
+    }
+
+    /**
+     * @test
+     */
+    public function cannot_check_if_verified(): void
+    {
+        $uri = Uri::new('/foo')->sign('foo')->create();
+
+        $this->expectException(\LogicException::class);
+
+        $uri->isVerified('secret');
+    }
+
+    /**
+     * @test
+     */
+    public function cannot_call_new_normally(): void
+    {
+        $this->expectException(\LogicException::class);
+
+        SignedUri::new('/foo/bar');
     }
 }
