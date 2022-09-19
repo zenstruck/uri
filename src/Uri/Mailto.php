@@ -2,40 +2,46 @@
 
 namespace Zenstruck\Uri;
 
-use Zenstruck\Uri;
-
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
- *
- * @immutable
  */
 final class Mailto implements \Stringable
 {
-    use Stringable;
+    private ParsedUri $uri;
 
-    private Uri $uri;
-
-    public function __construct(?string $value = null)
+    public function __construct(string $value)
     {
-        $uri = Uri::new($value);
+        $this->uri = new ParsedUri($value);
 
-        $this->uri = $uri
+        $this->uri = $this->uri
             ->withScheme('mailto')
-            ->withPath($uri->path()->trim())
+            ->withPath($this->uri->path()->trim())
             ->withoutHost()
             ->withoutPort()
-            ->withoutUser()
+            ->withoutUsername()
             ->withoutFragment()
             ->withOnlyQueryParams('subject', 'body', 'cc', 'bcc')
         ;
     }
 
-    /**
-     * @param string|self|null $value
-     */
-    public static function new($value = null): self
+    public function __toString(): string
     {
-        return $value instanceof self ? $value : new self(Uri::new($value));
+        return $this->toString();
+    }
+
+    public static function new(self|string|null $what = null): self
+    {
+        return $what instanceof self ? $what : new self((string) $what);
+    }
+
+    public static function wrap(self|string|null $what): self
+    {
+        return self::new($what);
+    }
+
+    public function toString(): string
+    {
+        return $this->uri;
     }
 
     /**
@@ -43,7 +49,7 @@ final class Mailto implements \Stringable
      */
     public function to(): array
     {
-        return \array_values(\array_filter(\array_map('trim', $this->uri->path()->segments(','))));
+        return self::splitEmails($this->uri->path());
     }
 
     /**
@@ -51,7 +57,7 @@ final class Mailto implements \Stringable
      */
     public function cc(): array
     {
-        return \array_values(\array_filter(\array_map('trim', \explode(',', $this->uri->query()->get('cc', '')))));
+        return self::splitEmails($this->uri->query()->getString('cc'));
     }
 
     /**
@@ -59,7 +65,7 @@ final class Mailto implements \Stringable
      */
     public function bcc(): array
     {
-        return \array_values(\array_filter(\array_map('trim', \explode(',', $this->uri->query()->get('bcc', '')))));
+        return self::splitEmails($this->uri->query()->getString('bcc'));
     }
 
     public function subject(): ?string
@@ -175,12 +181,15 @@ final class Mailto implements \Stringable
         return $this->withBcc();
     }
 
-    protected function generateString(): string
+    /**
+     * @return string[]
+     */
+    private static function splitEmails(string $value): array
     {
-        return $this->uri;
+        return \array_values(\array_filter(\array_map('trim', \explode(',', $value))));
     }
 
-    private static function createEmail(string $email, ?string $name = null): string
+    private static function createEmail(string $email, ?string $name): string
     {
         return $name ? "{$name} <{$email}>" : $email;
     }

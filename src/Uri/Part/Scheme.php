@@ -1,11 +1,17 @@
 <?php
 
-namespace Zenstruck\Uri;
+namespace Zenstruck\Uri\Part;
+
+use Zenstruck\Uri\Part;
 
 /**
+ * Represents a "normalized" scheme.
+ *
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @immutable
  */
-final class Scheme extends LowercasePart
+final class Scheme extends Part
 {
     private const DEFAULT_DELIMITER = '+';
     private const SCHEME_DEFAULT_PORT = [
@@ -19,13 +25,22 @@ final class Scheme extends LowercasePart
         'wss' => 443,
     ];
 
-    public function __construct(string $value)
+    private string $value;
+
+    public function __construct(?string $value)
     {
+        $value = (string) $value;
+
         if ('://' === \mb_substr($value, -3)) {
             $value = \mb_substr($value, 0, -3);
         }
 
-        parent::__construct($value);
+        $this->value = \mb_strtolower($value);
+    }
+
+    public function toString(): string
+    {
+        return $this->value;
     }
 
     /**
@@ -35,7 +50,7 @@ final class Scheme extends LowercasePart
      */
     public function segments(string $delimiter = self::DEFAULT_DELIMITER): array
     {
-        return \array_filter(\explode($delimiter, $this->toString()));
+        return \array_filter(\explode($delimiter, $this->value));
     }
 
     /**
@@ -49,15 +64,15 @@ final class Scheme extends LowercasePart
 
     public function equals(string $value): bool
     {
-        return $value === $this->toString();
+        return $value === $this->value;
     }
 
     /**
-     * @param mixed[] $value
+     * @param string[] $values
      */
-    public function in(array $value): bool
+    public function in(array $values): bool
     {
-        return \in_array($this->toString(), $value, true);
+        return \in_array($this->value, $values, true);
     }
 
     /**
@@ -70,6 +85,6 @@ final class Scheme extends LowercasePart
 
     public function defaultPort(): ?int
     {
-        return self::SCHEME_DEFAULT_PORT[$this->toString()] ?? null;
+        return self::SCHEME_DEFAULT_PORT[$this->value] ?? null;
     }
 }

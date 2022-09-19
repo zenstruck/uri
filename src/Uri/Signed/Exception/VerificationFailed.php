@@ -11,15 +11,11 @@ abstract class VerificationFailed extends \RuntimeException
 {
     public const REASON = '';
 
-    private Uri $uri;
-
     /**
      * @internal
      */
-    public function __construct(Uri $uri, ?string $message = null, ?\Throwable $previous = null)
+    public function __construct(private Uri $uri, ?string $message = null, ?\Throwable $previous = null)
     {
-        $this->uri = $uri;
-
         parent::__construct($message ?? static::REASON, 0, $previous);
     }
 

@@ -2,64 +2,78 @@
 
 namespace Zenstruck\Uri\Link;
 
+use Psr\Link\EvolvableLinkInterface;
 use Psr\Link\LinkInterface;
-use Symfony\Component\WebLink\HttpHeaderSerializer;
-use Symfony\Component\WebLink\Link;
 use Zenstruck\Uri;
-use Zenstruck\Uri\Stringable;
-
-if (!\class_exists(Link::class)) {
-    throw new \LogicException('symfony/web-link (4.4+) is required to use this class. Install with "composer require symfony/web-link".');
-}
+use Zenstruck\Uri\ParsedUri;
+use Zenstruck\Uri\WrappedUri;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class UriLink extends Link implements \Stringable
+final class UriLink extends WrappedUri implements EvolvableLinkInterface
 {
-    use Stringable;
-
     private Uri $uri;
 
+    /** @var array<string,string> */
+    private array $rels;
+
+    /** @var array<string,scalar|mixed[]> */
+    private array $attributes;
+
     /**
-     * @param Uri|string $uri
+     * @param string[]|string|null         $rel
+     * @param array<string,scalar|mixed[]> $attributes
      */
-    public function __construct($uri, ?string $rel = null)
+    public function __construct(Uri|string $href, array|string|null $rel = null, array $attributes = [])
     {
-        parent::__construct($rel, (string) $uri);
+        $this->uri = ParsedUri::wrap($href);
 
-        if ($uri instanceof Uri) {
-            $this->uri = $uri;
-        }
-    }
-
-    public function __clone()
-    {
-        // todo, once this library supports php8+ only, can override getHref() so only that clone unsets $this->uri
-        unset($this->uri);
-    }
-
-    public static function fromString(string $serialized): self
-    {
-        if (!\preg_match('#<(.+)>#', $serialized, $matches)) {
-            throw new \InvalidArgumentException(\sprintf('Unable to parse link "%s".', $serialized));
+        if (\is_string($rel)) {
+            $rel = [$rel];
         }
 
-        $link = new self($matches[1]);
+        $this->rels = null !== $rel ? \array_combine($values = \array_values($rel), $values) : [];
+        $this->attributes = $attributes;
+    }
 
-        \preg_match_all('#(\w+)=\"([\w\s]+)\"#', $serialized, $matches, \PREG_SET_ORDER);
+    public static function decode(string $encoded): self
+    {
+        if (!\preg_match('#<(.+)>#', $encoded, $matches)) {
+            throw new \InvalidArgumentException(\sprintf('Unable to decode link "%s".', $encoded));
+        }
+
+        $href = new self($matches[1]);
+
+        \preg_match_all('#(\w+)=\"([\w\s]+)\"#', $encoded, $matches, \PREG_SET_ORDER);
+        $attributes = [];
+        $rels = [];
 
         foreach ($matches as [, $key, $value]) {
-            $link = self::addAttribute($link, $key, $value);
+            /** @var string $key */
+            /** @var string $value */
+            if ('rel' !== $key) {
+                $attributes[$key] = $value;
+
+                continue;
+            }
+
+            foreach (\array_unique(\explode(' ', $value)) as $rel) {
+                $rels[] = $rel;
+            }
         }
 
-        return $link;
+        return new self($href, $rels, $attributes);
     }
 
-    public static function wrap(LinkInterface $link): self
+    public static function wrap(LinkInterface|string $link): self
     {
         if ($link instanceof self) {
             return $link;
+        }
+
+        if (\is_string($link)) {
+            return new self($link);
         }
 
         $ret = new self($link->getHref());
@@ -75,26 +89,89 @@ final class UriLink extends Link implements \Stringable
         return $ret;
     }
 
-    public function uri(): Uri
+    public function getHref(): string
     {
-        return $this->uri ??= Uri::new($this->getHref());
+        return (string) $this;
     }
 
-    protected function generateString(): string
+    public function isTemplated(): bool
     {
-        return (string) (new HttpHeaderSerializer())->serialize([$this]); // @phpstan-ignore-line
+        return \str_contains($href = $this->getHref(), '{') || \str_contains($href, '}');
     }
 
-    private static function addAttribute(self $link, string $key, string $value): self
+    public function getRels(): array
     {
-        if ('rel' !== $key) {
-            return $link->withAttribute($key, $value);
-        }
+        return \array_keys($this->rels);
+    }
 
-        foreach (\array_unique(\explode(' ', $value)) as $rel) {
-            $link = $link->withRel($rel);
-        }
+    /**
+     * @return array<string,scalar|mixed[]>
+     */
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
 
-        return $link;
+    /**
+     * @param \Stringable|string|Uri $href
+     */
+    public function withHref($href): static
+    {
+        $clone = clone $this;
+        $clone->uri = ParsedUri::wrap($href);
+
+        return $clone;
+    }
+
+    /**
+     * @param string $rel
+     */
+    public function withRel($rel): static
+    {
+        $clone = clone $this;
+        $clone->rels[$rel] = $rel;
+
+        return $clone;
+    }
+
+    /**
+     * @param string $rel
+     */
+    public function withoutRel($rel): static
+    {
+        $clone = clone $this;
+        unset($clone->rels[$rel]);
+
+        return $clone;
+    }
+
+    /**
+     * @param string                                    $attribute
+     * @param float|int|\Stringable|bool|mixed[]|string $value
+     *
+     * @return $this
+     */
+    public function withAttribute($attribute, $value): static
+    {
+        $clone = clone $this;
+        $clone->attributes[$attribute] = $value;
+
+        return $clone;
+    }
+
+    /**
+     * @param string $attribute
+     */
+    public function withoutAttribute($attribute): static
+    {
+        $clone = clone $this;
+        unset($clone->attributes[$attribute]);
+
+        return $clone;
+    }
+
+    protected function inner(): Uri
+    {
+        return $this->uri;
     }
 }

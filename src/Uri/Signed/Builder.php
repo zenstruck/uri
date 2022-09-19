@@ -2,7 +2,6 @@
 
 namespace Zenstruck\Uri\Signed;
 
-use Symfony\Component\HttpKernel\UriSigner;
 use Zenstruck\Uri;
 use Zenstruck\Uri\SignedUri;
 
@@ -13,28 +12,11 @@ use Zenstruck\Uri\SignedUri;
  */
 final class Builder implements \Stringable
 {
-    private Uri $uri;
-    private UriSigner $signer;
     private ?\DateTimeImmutable $expiresAt = null;
     private ?string $singleUseToken = null;
 
-    /**
-     * @internal
-     *
-     * @param string|UriSigner $secret
-     */
-    public function __construct(Uri $uri, $secret)
+    public function __construct(private Uri $uri, private string|SymfonySigner $secret)
     {
-        if (!\class_exists(UriSigner::class)) {
-            throw new \LogicException('symfony/http-kernel is required to sign URIs. composer require symfony/http-kernel.');
-        }
-
-        if ($uri instanceof SignedUri) {
-            throw new \LogicException(\sprintf('"%s" is already signed.', $uri));
-        }
-
-        $this->uri = $uri;
-        $this->signer = $secret instanceof UriSigner ? $secret : new UriSigner($secret);
     }
 
     public function __toString(): string
@@ -50,7 +32,7 @@ final class Builder implements \Stringable
      *                                                          string: used to construct a datetime object (ie "+1 hour")
      *                                                          int: # of seconds until the link expires
      */
-    public function expires($when): self
+    public function expires(\DateTimeInterface|\DateInterval|string|int $when): self
     {
         if (\is_numeric($when)) {
             $when = \DateTimeImmutable::createFromFormat('U', (string) (\time() + $when));
@@ -69,7 +51,7 @@ final class Builder implements \Stringable
         }
 
         if (!$when instanceof \DateTimeInterface) {
-            throw new \InvalidArgumentException(\sprintf('%s is not a valid expires at.', get_debug_type($when)));
+            throw new \InvalidArgumentException(\sprintf('%s is not a valid expires at.', \get_debug_type($when)));
         }
 
         $clone = clone $this;
@@ -93,16 +75,6 @@ final class Builder implements \Stringable
 
     public function create(): SignedUri
     {
-        return SignedUri::new($this);
-    }
-
-    /**
-     * @internal
-     *
-     * @return array{0:Uri,1:UriSigner,2:\DateTimeImmutable|null,3:string|null}
-     */
-    public function context(): array
-    {
-        return [$this->uri, $this->signer, $this->expiresAt, $this->singleUseToken];
+        return SignedUri::sign($this->uri, $this->secret, $this->expiresAt, $this->singleUseToken);
     }
 }

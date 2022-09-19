@@ -12,16 +12,20 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
-        "symfony/polyfill-php80": "^1.25"
+        "php": ">=8.0",
+        "psr/link": "^1.0|^2.0"
     },
     "require-dev": {
         "phpstan/phpstan": "^1.4",
-        "symfony/http-foundation": "^4.4|^5.0|^6.0",
-        "symfony/http-kernel": "^4.4|^5.0|^6.0",
+        "phpunit/phpunit": "^9.5",
+        "rize/uri-template": "^0.3.5",
+        "symfony/http-kernel": "^4.4|^5.4|^6.0",
         "symfony/phpunit-bridge": "^6.1",
         "symfony/web-link": "^4.4|^5.0|^6.0",
         "twig/twig": "^2.8|^3.0"
+    },
+    "provide": {
+        "psr/link-implementation": "1.0|2.0"
     },
     "config": {
         "preferred-install": "dist",
@@ -35,7 +39,7 @@
     },
     "suggest": {
         "symfony/http-kernel": "To create and verify signed URIs",
-        "symfony/web-link": "(4.4+) to use the UriLink feature"
+        "rize/uri-template": "To use TemplateUri"
     },
     "minimum-stability": "dev",
     "prefer-stable": true
