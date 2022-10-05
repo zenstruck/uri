@@ -104,6 +104,16 @@ final class UriLinksTest extends TestCase
         $this->assertSame('https://baz.com', $links->firstForRel('prev')->uri()->toString());
     }
 
+    /**
+     * @test
+     */
+    public function parse_empty_string(): void
+    {
+        $this->assertCount(0, UriLinks::fromString(''));
+        $this->assertCount(0, UriLinks::fromString('  '));
+        $this->assertCount(0, UriLinks::fromString(null));
+    }
+
     private function sut(): UriLinks
     {
         return new UriLinks([

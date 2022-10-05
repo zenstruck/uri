@@ -21,8 +21,12 @@ final class UriLinks extends GenericLinkProvider implements \Stringable, \Counta
 {
     use Stringable;
 
-    public static function fromString(string $serialized): self
+    public static function fromString(?string $serialized): self
     {
+        if ('' === $serialized = \trim((string) $serialized)) {
+            return new self();
+        }
+
         return new self(\array_map([UriLink::class, 'fromString'], \explode(',', $serialized)));
     }
 
