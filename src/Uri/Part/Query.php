@@ -1,42 +1,55 @@
 <?php
 
-namespace Zenstruck\Uri;
+namespace Zenstruck\Uri\Part;
+
+use Zenstruck\Uri\Part;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @immutable
  */
-final class Query implements \Stringable
+final class Query extends Part
 {
-    use Stringable;
+    private string $string;
 
-    /** @var mixed[]|string */
-    private $value;
+    /** @var array<string,mixed> */
+    private array $array;
 
     /**
-     * @param mixed[]|string $value
+     * @param string|array<string,mixed>|null $value
      */
-    public function __construct($value)
+    public function __construct(string|array|null $value)
     {
-        if (\is_string($value)) {
-            $value = \ltrim($value, '?');
+        if (\is_array($value)) {
+            $this->array = $value;
+
+            return;
         }
 
-        $this->value = $value;
+        $this->string = \ltrim((string) $value, '?');
+    }
+
+    public function toString(): string
+    {
+        return \http_build_query($this->all(), '', '&', \PHP_QUERY_RFC3986);
     }
 
     /**
-     * @return mixed[]
+     * @return array<string,mixed>
      */
     public function all(): array
     {
-        if (\is_array($this->value)) {
-            return $this->value;
+        if (isset($this->array)) {
+            return $this->array;
         }
 
-        // convert string to array
-        \parse_str($this->value, $this->value);
+        $this->array = [];
 
-        return $this->value;
+        // convert string to array
+        \parse_str($this->string, $this->array);
+
+        return $this->array;
     }
 
     public function has(string $param): bool
@@ -45,13 +58,15 @@ final class Query implements \Stringable
     }
 
     /**
-     * @param mixed|\Throwable|null $default
+     * @template T
      *
-     * @return mixed
+     * @param T|\Throwable $default
+     *
+     * @return T
      *
      * @throws \Throwable If passed as default and no match
      */
-    public function get(string $param, $default = null)
+    public function get(string $param, mixed $default = null): mixed
     {
         if ($default instanceof \Throwable && !$this->has($param)) {
             throw $default;
@@ -61,21 +76,25 @@ final class Query implements \Stringable
     }
 
     /**
-     * @param bool|\Throwable $default
-     *
      * @throws \Throwable If passed as default and no match
      */
-    public function getBool(string $param, $default = false): bool
+    public function getString(string $param, string|\Throwable $default = ''): string
+    {
+        return (string) $this->get($param, $default);
+    }
+
+    /**
+     * @throws \Throwable If passed as default and no match
+     */
+    public function getBool(string $param, bool|\Throwable $default = false): bool
     {
         return \filter_var($this->get($param, $default), \FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
-     * @param int|\Throwable $default
-     *
      * @throws \Throwable If passed as default and no match
      */
-    public function getInt(string $param, $default = 0): int
+    public function getInt(string $param, int|\Throwable $default = 0): int
     {
         return (int) $this->get($param, $default);
     }
@@ -104,19 +123,11 @@ final class Query implements \Stringable
         return new self($array);
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function withQueryParam(string $param, $value): self
+    public function withQueryParam(string $param, mixed $value): self
     {
         $array = $this->all();
         $array[$param] = $value;
 
         return new self($array);
-    }
-
-    protected function generateString(): string
-    {
-        return \http_build_query($this->all(), '', '&', \PHP_QUERY_RFC3986);
     }
 }

@@ -1,7 +1,0 @@
-parameters:
-	ignoreErrors:
-		-
-			message: "#^Method Zenstruck\\\\Uri\\\\Query\\:\\:all\\(\\) should return array but returns string\\.$#"
-			count: 1
-			path: src/Uri/Query.php
-

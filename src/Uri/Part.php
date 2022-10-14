@@ -4,22 +4,18 @@ namespace Zenstruck\Uri;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
- *
- * @internal
  */
 abstract class Part implements \Stringable
 {
-    use Stringable;
-
-    private string $value;
-
-    public function __construct(string $value)
+    final public function __toString(): string
     {
-        $this->value = $value;
+        return $this->toString();
     }
 
-    final protected function generateString(): string
+    final public function isEmpty(): bool
     {
-        return $this->value;
+        return '' === $this->toString();
     }
+
+    abstract public function toString(): string;
 }

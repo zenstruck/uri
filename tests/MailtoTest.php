@@ -17,7 +17,7 @@ final class MailtoTest extends TestCase
      */
     public function convert_to_string($input, $expected): void
     {
-        $this->assertSame($expected, Mailto::new($input)->toString());
+        $this->assertSame($expected, Mailto::wrap($input)->toString());
     }
 
     public static function convertToStringProvider(): iterable
@@ -51,7 +51,7 @@ final class MailtoTest extends TestCase
         $this->assertNull($mailto->subject());
         $this->assertNull($mailto->body());
 
-        $mailto = Mailto::new('user1@example.com,user2@example.com?subject=foo&body=bar&cc=user3@example.com,  user4@example.com&bcc=user5@example.com');
+        $mailto = Mailto::wrap('user1@example.com,user2@example.com?subject=foo&body=bar&cc=user3@example.com,  user4@example.com&bcc=user5@example.com');
 
         $this->assertSame(['user1@example.com', 'user2@example.com'], $mailto->to());
         $this->assertSame(['user3@example.com', 'user4@example.com'], $mailto->cc());

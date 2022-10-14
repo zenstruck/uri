@@ -1,27 +1,25 @@
 <?php
 
-namespace Zenstruck\Uri;
+namespace Zenstruck\Uri\Part;
+
+use Zenstruck\Uri\Part;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
  * @immutable
  */
-final class Authority implements \Stringable
+final class Authority extends Part
 {
-    use Stringable;
+    private string $string;
 
-    private Host $host;
-    private ?string $username;
-    private ?string $password;
-    private ?int $port;
-
-    public function __construct(string $host, ?string $username, ?string $password, ?int $port)
+    public function __construct(private Host $host, private ?string $username, private ?string $password, private ?int $port)
     {
-        $this->host = new Host($host);
-        $this->port = $port;
-        $this->username = null !== $username ? \rawurldecode($username) : null;
-        $this->password = null !== $password ? \rawurldecode($password) : null;
+    }
+
+    public function __clone()
+    {
+        unset($this->string);
     }
 
     public function host(): Host
@@ -29,14 +27,20 @@ final class Authority implements \Stringable
         return $this->host;
     }
 
+    /**
+     * @return string|null "urldecoded"
+     */
     public function username(): ?string
     {
-        return $this->username;
+        return null !== $this->username ? \rawurldecode($this->username) : null;
     }
 
+    /**
+     * @return string|null "urldecoded"
+     */
     public function password(): ?string
     {
-        return $this->password;
+        return null !== $this->password ? \rawurldecode($this->password) : null;
     }
 
     public function port(): ?int
@@ -46,14 +50,14 @@ final class Authority implements \Stringable
 
     public function userInfo(): ?string
     {
-        if (null === $user = $this->username) {
+        if (null === $user = $this->username()) {
             return null;
         }
 
         $ret = \rawurlencode($user);
 
-        if (null !== $this->password) {
-            $ret .= ':'.\rawurlencode($this->password);
+        if (null !== $password = $this->password()) {
+            $ret .= ':'.\rawurlencode($password);
         }
 
         return $ret;
@@ -62,7 +66,7 @@ final class Authority implements \Stringable
     public function withHost(?string $host): self
     {
         $authority = clone $this;
-        $authority->host = new Host((string) $host);
+        $authority->host = new Host($host);
 
         if ($authority->host->isEmpty()) {
             $authority->username = null;
@@ -76,7 +80,7 @@ final class Authority implements \Stringable
     public function withUsername(?string $username): self
     {
         $authority = clone $this;
-        $authority->username = $username;
+        $authority->username = null !== $username ? \rawurlencode($username) : null;
 
         if (null === $username) {
             // cannot have a password without a username
@@ -89,11 +93,11 @@ final class Authority implements \Stringable
     public function withPassword(?string $password): self
     {
         if (null !== $password && null === $this->username) {
-            throw new \InvalidArgumentException('Cannot have a password without a username.');
+            throw new \LogicException('Cannot have a password without a username.');
         }
 
         $authority = clone $this;
-        $authority->password = $password;
+        $authority->password = null !== $password ? \rawurlencode($password) : null;
 
         return $authority;
     }
@@ -110,15 +114,19 @@ final class Authority implements \Stringable
         return $authority;
     }
 
-    protected function generateString(): string
+    public function toString(): string
     {
+        if (isset($this->string)) {
+            return $this->string;
+        }
+
         $ret = $this->userInfo();
-        $ret = $ret ? "{$ret}@{$this->host}" : (string) $this->host;
+        $ret = $ret ? "{$ret}@{$this->host}" : $this->host->toString();
 
         if (null !== $this->port) {
             $ret .= ":{$this->port}";
         }
 
-        return $ret;
+        return $this->string = $ret;
     }
 }

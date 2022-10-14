@@ -2,20 +2,17 @@
 
 namespace Zenstruck\Uri\Tests;
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\UriSigner;
-use Zenstruck\Uri;
-use Zenstruck\Uri\Signed\Exception\ExpiredUri;
+use Zenstruck\Uri\ParsedUri;
+use Zenstruck\Uri\Signed\Exception\AlreadyUsed;
+use Zenstruck\Uri\Signed\Exception\Expired;
 use Zenstruck\Uri\Signed\Exception\InvalidSignature;
-use Zenstruck\Uri\Signed\Exception\UriAlreadyUsed;
 use Zenstruck\Uri\Signed\Exception\VerificationFailed;
 use Zenstruck\Uri\SignedUri;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class SignedUriTest extends TestCase
+final class SignedUriTest extends UriTest
 {
     /**
      * @test
@@ -24,8 +21,7 @@ final class SignedUriTest extends TestCase
      */
     public function can_sign_url($uri, $secret, $expiresAt = null, $singleUseToken = null): void
     {
-        $uri = Uri::new($uri);
-        $builder = $uri->sign($secret);
+        $builder = ParsedUri::wrap($uri)->sign($secret);
 
         if ($expiresAt) {
             $builder = $builder->expires($expiresAt);
@@ -37,7 +33,7 @@ final class SignedUriTest extends TestCase
 
         $signed = $builder->create();
 
-        $this->assertTrue(Uri::new($signed)->isVerified($secret, $singleUseToken));
+        $this->assertTrue(ParsedUri::wrap($signed)->isVerified($secret, $singleUseToken));
         $this->assertSame((string) $builder, (string) $signed);
         $this->assertTrue($signed->query()->has('_hash'));
 
@@ -61,7 +57,6 @@ final class SignedUriTest extends TestCase
     public static function validSignedUrlProvider(): iterable
     {
         yield ['/foo/bar', '1234'];
-        yield ['/foo/bar', new UriSigner('1234')];
         yield ['http://example.com/foo/bar?baz=1', '1234'];
         yield ['/foo/bar', '1234', 5];
         yield ['/foo/bar', '1234', 'tomorrow'];
@@ -78,7 +73,7 @@ final class SignedUriTest extends TestCase
      */
     public function invalid_signed_url($uri, $secret, $expectedException, $singleUseToken = null): void
     {
-        $uri = Uri::new($uri);
+        $uri = ParsedUri::wrap($uri);
 
         $this->assertFalse($uri->isVerified($secret, $singleUseToken));
 
@@ -96,16 +91,14 @@ final class SignedUriTest extends TestCase
 
     public static function invalidSignedUrlProvider(): iterable
     {
-        $builder = Uri::new('/foo/bar')->sign('1234');
+        $builder = ParsedUri::wrap('/foo/bar')->sign('1234');
 
         yield [$builder->create(), '4321', InvalidSignature::class];
-        yield [$builder->create(), new UriSigner('4321'), InvalidSignature::class];
-        yield [$builder->expires(-5)->create(), '1234', ExpiredUri::class];
-        yield [$builder->expires('yesterday')->create(), '1234', ExpiredUri::class];
+        yield [$builder->expires(-5)->create(), '1234', Expired::class];
+        yield [$builder->expires('yesterday')->create(), '1234', Expired::class];
         yield [$builder->singleUse('token')->create(), '1234', InvalidSignature::class];
         yield [$builder->create(), '1234', InvalidSignature::class, 'token'];
-        yield [$builder->singleUse('token')->create(), '1234', UriAlreadyUsed::class, 'invalid'];
-        yield [Request::create('foo/bar'), '4321', InvalidSignature::class];
+        yield [$builder->singleUse('token')->create(), '1234', AlreadyUsed::class, 'invalid'];
     }
 
     /**
@@ -113,13 +106,13 @@ final class SignedUriTest extends TestCase
      */
     public function can_access_expires_at(): void
     {
-        $this->assertNull(Uri::new('/foo/bar')->sign('1234')->create()->expiresAt());
+        $this->assertNull(ParsedUri::wrap('/foo/bar')->sign('1234')->create()->expiresAt());
 
         $expiresAt = new \DateTime('tomorrow');
 
         $this->assertSame(
             $expiresAt->getTimestamp(),
-            Uri::new('/foo/bar')->sign('1234')->expires($expiresAt)->create()->expiresAt()->getTimestamp()
+            ParsedUri::wrap('/foo/bar')->sign('1234')->expires($expiresAt)->create()->expiresAt()?->getTimestamp()
         );
     }
 
@@ -130,74 +123,17 @@ final class SignedUriTest extends TestCase
     {
         $this->expectException(\Exception::class);
 
-        Uri::new('/foo')->sign('1234')->expires('invalid');
+        ParsedUri::wrap('/foo')->sign('1234')->expires('invalid');
     }
 
-    /**
-     * @test
-     */
-    public function cannot_create_with_invalid_expires_object(): void
+    protected function uriFor(string $value): SignedUri
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $class = new \ReflectionClass(SignedUri::class);
+        $uri = $class->newInstanceWithoutConstructor();
+        $prop = $class->getProperty('uri');
+        $prop->setAccessible(true);
+        $prop->setValue($uri, new ParsedUri($value));
 
-        Uri::new('/foo')->sign('1234')->expires(new \stdClass());
-    }
-
-    /**
-     * @test
-     */
-    public function cannot_be_cloned(): void
-    {
-        $uri = Uri::new('/foo')->sign('foo')->create();
-
-        $this->expectException(\LogicException::class);
-
-        clone $uri;
-    }
-
-    /**
-     * @test
-     */
-    public function cannot_re_sign(): void
-    {
-        $uri = Uri::new('/foo')->sign('foo')->create();
-
-        $this->expectException(\LogicException::class);
-
-        $uri->sign('secret');
-    }
-
-    /**
-     * @test
-     */
-    public function cannot_re_verify(): void
-    {
-        $uri = Uri::new('/foo')->sign('foo')->create();
-
-        $this->expectException(\LogicException::class);
-
-        $uri->verify('secret');
-    }
-
-    /**
-     * @test
-     */
-    public function cannot_check_if_verified(): void
-    {
-        $uri = Uri::new('/foo')->sign('foo')->create();
-
-        $this->expectException(\LogicException::class);
-
-        $uri->isVerified('secret');
-    }
-
-    /**
-     * @test
-     */
-    public function cannot_call_new_normally(): void
-    {
-        $this->expectException(\LogicException::class);
-
-        SignedUri::new('/foo/bar');
+        return $uri;
     }
 }
