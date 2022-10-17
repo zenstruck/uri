@@ -19,7 +19,7 @@ final class ExtractTemplateUriTest extends UriTest
         $uri = TemplateUri::extract('/repos/{owner}/{repo}', '/repos/kbond/foundry');
 
         $this->assertSame('/repos/{owner}/{repo}', $uri->template());
-        $this->assertSame(['owner' => 'kbond', 'repo' => 'foundry'], $uri->parameters());
+        $this->assertSame(['owner' => 'kbond', 'repo' => 'foundry'], $uri->parameters()->all());
         $this->assertSame('/repos/kbond/foundry', $uri->toString());
     }
 
@@ -31,7 +31,7 @@ final class ExtractTemplateUriTest extends UriTest
         $uri = TemplateUri::extract('/repos/{owner}/{repo}', '/repos/kbond');
 
         $this->assertSame('/repos/{owner}/{repo}', $uri->template());
-        $this->assertSame(['owner' => 'kbond'], $uri->parameters());
+        $this->assertSame(['owner' => 'kbond'], $uri->parameters()->all());
         $this->assertSame('/repos/kbond', $uri->toString());
     }
 
@@ -44,19 +44,19 @@ final class ExtractTemplateUriTest extends UriTest
         $uri = TemplateUri::extract($template, '/repos/kbond/foundry/contents/README.md');
 
         $this->assertSame($template, $uri->template());
-        $this->assertSame(['owner' => 'kbond', 'repo' => 'foundry', 'path' => 'README.md'], $uri->parameters());
+        $this->assertSame(['owner' => 'kbond', 'repo' => 'foundry', 'path' => 'README.md'], $uri->parameters()->all());
         $this->assertSame('/repos/kbond/foundry/contents/README.md', $uri->toString());
 
         $uri = TemplateUri::extract($template, '/repos/kbond/foundry/contents/README.md?ref=1.x');
 
         $this->assertSame($template, $uri->template());
-        $this->assertSame(['owner' => 'kbond', 'repo' => 'foundry', 'path' => 'README.md', 'ref' => '1.x'], $uri->parameters());
+        $this->assertSame(['owner' => 'kbond', 'repo' => 'foundry', 'path' => 'README.md', 'ref' => '1.x'], $uri->parameters()->all());
         $this->assertSame('/repos/kbond/foundry/contents/README.md?ref=1.x', $uri->toString());
 
         $uri = TemplateUri::extract($template, '/repos/kbond/foundry/contents/README.md?ref=');
 
         $this->assertSame($template, $uri->template());
-        $this->assertSame(['owner' => 'kbond', 'repo' => 'foundry', 'path' => 'README.md'], $uri->parameters());
+        $this->assertSame(['owner' => 'kbond', 'repo' => 'foundry', 'path' => 'README.md'], $uri->parameters()->all());
         $this->assertSame('/repos/kbond/foundry/contents/README.md?ref=', $uri->toString());
     }
 
@@ -78,6 +78,9 @@ final class ExtractTemplateUriTest extends UriTest
 
         $uri = $uri->withoutParameters('type', 'page');
         $this->assertSame('/orgs/zenstruck/repos?sort=created', $uri->toString());
+
+        $uri = $uri->mergeParameters(['type' => 'foo', 'page' => 3]);
+        $this->assertSame('/orgs/zenstruck/repos?type=foo&sort=created&page=3', $uri->toString());
     }
 
     protected function uriFor(string $value): Uri

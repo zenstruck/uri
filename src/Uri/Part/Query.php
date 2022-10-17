@@ -2,6 +2,7 @@
 
 namespace Zenstruck\Uri\Part;
 
+use Zenstruck\Uri\Parameters;
 use Zenstruck\Uri\Part;
 
 /**
@@ -12,9 +13,7 @@ use Zenstruck\Uri\Part;
 final class Query extends Part
 {
     private string $string;
-
-    /** @var array<string,mixed> */
-    private array $array;
+    private Parameters $parameters;
 
     /**
      * @param string|array<string,mixed>|null $value
@@ -22,7 +21,7 @@ final class Query extends Part
     public function __construct(string|array|null $value)
     {
         if (\is_array($value)) {
-            $this->array = $value;
+            $this->parameters = new Parameters($value);
 
             return;
         }
@@ -32,7 +31,7 @@ final class Query extends Part
 
     public function toString(): string
     {
-        return \http_build_query($this->all(), '', '&', \PHP_QUERY_RFC3986);
+        return \http_build_query($this->parameters()->all(), '', '&', \PHP_QUERY_RFC3986);
     }
 
     /**
@@ -40,21 +39,12 @@ final class Query extends Part
      */
     public function all(): array
     {
-        if (isset($this->array)) {
-            return $this->array;
-        }
-
-        $this->array = [];
-
-        // convert string to array
-        \parse_str($this->string, $this->array);
-
-        return $this->array;
+        return $this->parameters()->all();
     }
 
     public function has(string $param): bool
     {
-        return \array_key_exists($param, $this->all());
+        return $this->parameters()->has($param);
     }
 
     /**
@@ -68,11 +58,7 @@ final class Query extends Part
      */
     public function get(string $param, mixed $default = null): mixed
     {
-        if ($default instanceof \Throwable && !$this->has($param)) {
-            throw $default;
-        }
-
-        return $this->all()[$param] ?? $default;
+        return $this->parameters()->get($param, $default);
     }
 
     /**
@@ -80,7 +66,7 @@ final class Query extends Part
      */
     public function getString(string $param, string|\Throwable $default = ''): string
     {
-        return (string) $this->get($param, $default);
+        return $this->parameters()->getString($param, $default);
     }
 
     /**
@@ -88,7 +74,7 @@ final class Query extends Part
      */
     public function getBool(string $param, bool|\Throwable $default = false): bool
     {
-        return \filter_var($this->get($param, $default), \FILTER_VALIDATE_BOOLEAN);
+        return $this->parameters()->getBool($param, $default);
     }
 
     /**
@@ -96,38 +82,44 @@ final class Query extends Part
      */
     public function getInt(string $param, int|\Throwable $default = 0): int
     {
-        return (int) $this->get($param, $default);
+        return $this->parameters()->getInt($param, $default);
     }
 
     public function withoutQueryParams(string ...$params): self
     {
-        $array = $this->all();
+        $clone = clone $this;
+        $clone->parameters = $this->parameters()->without(...$params);
 
-        foreach ($params as $key) {
-            unset($array[$key]);
-        }
-
-        return new self($array);
+        return $clone;
     }
 
     public function withOnlyQueryParams(string ...$params): self
     {
-        $array = $this->all();
+        $clone = clone $this;
+        $clone->parameters = $this->parameters()->only(...$params);
 
-        foreach (\array_keys($array) as $param) {
-            if (!\in_array($param, $params, true)) {
-                unset($array[$param]);
-            }
-        }
-
-        return new self($array);
+        return $clone;
     }
 
     public function withQueryParam(string $param, mixed $value): self
     {
-        $array = $this->all();
-        $array[$param] = $value;
+        $clone = clone $this;
+        $clone->parameters = $this->parameters()->with($param, $value);
 
-        return new self($array);
+        return $clone;
+    }
+
+    private function parameters(): Parameters
+    {
+        if (isset($this->parameters)) {
+            return $this->parameters;
+        }
+
+        $array = [];
+
+        // convert string to array
+        \parse_str($this->string, $array);
+
+        return $this->parameters = new Parameters($array);
     }
 }

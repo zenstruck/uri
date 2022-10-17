@@ -14,9 +14,7 @@ final class TemplateUri extends WrappedUri
 {
     private UriTemplate $parser;
     private Uri $uri;
-
-    /** @var mixed[] */
-    private array $parameters;
+    private Parameters $parameters;
 
     private function __construct(private string $template)
     {
@@ -26,7 +24,7 @@ final class TemplateUri extends WrappedUri
     }
 
     /**
-     * @param mixed[] $parameters
+     * @param array<string,mixed> $parameters
      */
     public static function expand(string $template, array $parameters): self
     {
@@ -49,21 +47,18 @@ final class TemplateUri extends WrappedUri
         return $this->template;
     }
 
-    /**
-     * @return mixed[]
-     */
-    public function parameters(): array
+    public function parameters(): Parameters
     {
         return $this->parameters ??= self::filterParameters($this->parser()->extract($this->template, $this->uri) ?? throw new \LogicException());
     }
 
     /**
-     * @param mixed[] $parameters
+     * @param array<string,mixed> $parameters
      */
     public function withParameters(array $parameters): self
     {
         $clone = clone $this;
-        $clone->parameters = $parameters;
+        $clone->parameters = self::filterParameters($parameters);
         unset($clone->uri);
 
         return $clone;
@@ -74,12 +69,12 @@ final class TemplateUri extends WrappedUri
      */
     public function withParameter(string $key, bool|string|float|int|array $value): self
     {
-        return $this->withParameters(\array_merge($this->parameters(), [$key => $value]));
+        return $this->withParameters($this->parameters()->merge([$key => $value])->all());
     }
 
     public function withoutParameters(string ...$keys): self
     {
-        $parameters = $this->parameters();
+        $parameters = $this->parameters()->all();
 
         foreach ($keys as $key) {
             unset($parameters[$key]);
@@ -88,19 +83,25 @@ final class TemplateUri extends WrappedUri
         return $this->withParameters($parameters);
     }
 
+    /**
+     * @param array<string,mixed> ...$arrays
+     */
+    public function mergeParameters(...$arrays): self
+    {
+        return $this->withParameters($this->parameters()->merge(...$arrays)->all());
+    }
+
     protected function inner(): Uri
     {
-        return $this->uri ??= ParsedUri::wrap($this->parser()->expand($this->template, $this->parameters));
+        return $this->uri ??= ParsedUri::wrap($this->parser()->expand($this->template, $this->parameters->all()));
     }
 
     /**
      * @param mixed[] $values
-     *
-     * @return mixed[]
      */
-    private static function filterParameters(array $values): array
+    private static function filterParameters(array $values): Parameters
     {
-        return \array_filter($values, static fn($v) => '' !== $v && null !== $v);
+        return new Parameters(\array_filter($values, static fn($v) => '' !== $v && null !== $v));
     }
 
     private function parser(): UriTemplate
