@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [v1.3.0](https://github.com/zenstruck/uri/releases/tag/v1.3.0)
+
+October 14th, 2022 - [v1.2.0...v1.3.0](https://github.com/zenstruck/uri/compare/v1.2.0...v1.3.0)
+
+* 2d4b069 [bug] fix parsing empty UriLinks (#14) by @kbond
+* 65d5c00 [feature] add `UriLink` & `UriLinks` (#13) by @kbond
+* b61a6ed [minor] adjust phpstan config by @kbond
+* 8a42898 [minor] adjust deps/ci by @kbond
+
 ## [v1.2.0](https://github.com/zenstruck/uri/releases/tag/v1.2.0)
 
 September 14th, 2022 - [v1.1.0...v1.2.0](https://github.com/zenstruck/uri/compare/v1.1.0...v1.2.0)
