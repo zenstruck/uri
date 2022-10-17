@@ -85,7 +85,7 @@ final class Query extends Part
         return $this->parameters()->getInt($param, $default);
     }
 
-    public function withoutQueryParams(string ...$params): self
+    public function without(string ...$params): self
     {
         $clone = clone $this;
         $clone->parameters = $this->parameters()->without(...$params);
@@ -93,7 +93,7 @@ final class Query extends Part
         return $clone;
     }
 
-    public function withOnlyQueryParams(string ...$params): self
+    public function only(string ...$params): self
     {
         $clone = clone $this;
         $clone->parameters = $this->parameters()->only(...$params);
@@ -101,7 +101,7 @@ final class Query extends Part
         return $clone;
     }
 
-    public function withQueryParam(string $param, mixed $value): self
+    public function with(string $param, mixed $value): self
     {
         $clone = clone $this;
         $clone->parameters = $this->parameters()->with($param, $value);

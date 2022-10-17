@@ -247,7 +247,7 @@ final class ParsedUri extends Uri
     public function withQueryParam(string $param, mixed $value): self
     {
         $uri = clone $this;
-        $uri->query = $this->query()->withQueryParam($param, $value);
+        $uri->query = $this->query()->with($param, $value);
 
         return $uri;
     }
@@ -255,7 +255,7 @@ final class ParsedUri extends Uri
     public function withOnlyQueryParams(string ...$params): self
     {
         $uri = clone $this;
-        $uri->query = $this->query()->withOnlyQueryParams(...$params);
+        $uri->query = $this->query()->only(...$params);
 
         return $uri;
     }
@@ -263,7 +263,7 @@ final class ParsedUri extends Uri
     public function withoutQueryParams(string ...$params): self
     {
         $uri = clone $this;
-        $uri->query = $this->query()->withoutQueryParams(...$params);
+        $uri->query = $this->query()->without(...$params);
 
         return $uri;
     }
