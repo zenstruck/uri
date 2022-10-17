@@ -24,10 +24,14 @@ final class TemplateUri extends WrappedUri
     }
 
     /**
-     * @param array<string,mixed> $parameters
+     * @param array<string,mixed>|Parameters $parameters
      */
-    public static function expand(string $template, array $parameters): self
+    public static function expand(string $template, array|Parameters $parameters): self
     {
+        if ($parameters instanceof Parameters) {
+            $parameters = $parameters->all();
+        }
+
         $ret = new self($template);
         $ret->parameters = self::filterParameters($parameters);
 

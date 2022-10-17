@@ -3,6 +3,7 @@
 namespace Zenstruck\Uri\Tests\Template;
 
 use Zenstruck\Uri;
+use Zenstruck\Uri\Parameters;
 use Zenstruck\Uri\TemplateUri;
 use Zenstruck\Uri\Tests\UriTest;
 
@@ -41,7 +42,7 @@ final class ExpandTemplateUriTest extends UriTest
     public function complex_template(): void
     {
         $template = '/repos/{owner}/{repo}/contents/{path}{?ref}';
-        $uri = TemplateUri::expand($template, ['owner' => 'kbond', 'repo' => 'foundry', 'path' => 'README.md']);
+        $uri = TemplateUri::expand($template, new Parameters(['owner' => 'kbond', 'repo' => 'foundry', 'path' => 'README.md']));
 
         $this->assertSame($template, $uri->template());
         $this->assertSame(['owner' => 'kbond', 'repo' => 'foundry', 'path' => 'README.md'], $uri->parameters()->all());
