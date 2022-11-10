@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [2.0.0](https://github.com/zenstruck/uri/releases/tag/2.0.0)
+
+November 10th, 2022 - _[Release](https://github.com/zenstruck/uri/commits/v2.0.0)_
+
+* Major refactor by @kbond
+
 ## [v1.3.0](https://github.com/zenstruck/uri/releases/tag/v1.3.0)
 
 October 14th, 2022 - [v1.2.0...v1.3.0](https://github.com/zenstruck/uri/compare/v1.2.0...v1.3.0)
