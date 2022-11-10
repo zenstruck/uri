@@ -120,6 +120,6 @@ final class Query extends Part
         // convert string to array
         \parse_str($this->string, $array);
 
-        return $this->parameters = new Parameters($array);
+        return $this->parameters = new Parameters($array); // @phpstan-ignore-line
     }
 }
