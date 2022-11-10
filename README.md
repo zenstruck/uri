@@ -7,9 +7,11 @@ Object-oriented wrapper/manipulator for `parse_url` with the following features:
 * Read URI _parts_ as objects (`Scheme`, `Host`, `Path`, `Query`), each with their own
   set of features.
 * Manipulate URI parts or build URI's using a fluent builder API.
-* Sign and verify URI's and make them temporary and/or single-use.
-* Mailto object to help with reading/manipulating `mailto:` URIs.
-* Optional [twig](https://twig.symfony.com/) extension.
+* [Sign and verify](#signed-uris) URI's and make them temporary and/or single-use.
+* [Mailto object](#mailto) to help with reading/manipulating `mailto:` URIs.
+* [URI Template](#templateuri) ([RFC 6570](http://tools.ietf.org/html/rfc6570)) support.
+* [PSR-13 Link](#urilink) implementation/bridge.
+* Optional [Twig extension](#twig-extension).
 
 This library is meant as a wrapper for PHP's `parse_url` function only and does not
 conform to any PSR or RFC. If you need this, [league/uri](https://uri.thephpleague.com/)
@@ -24,14 +26,10 @@ composer require zenstruck/uri
 ## Parsing/Reading URIs
 
 ```php
-use Zenstruck\Uri;
+use Zenstruck\Uri\ParsedUri;
 
 // wrap a uri (this URI will be used for many of the samples below)
-$uri = Uri::new('https://username:password@example.com/some/dir/file.html?q=abc&flag=1#test');
-
-// can also wrap an instance of Symfony\Component\HttpFoundation\Request
-/** @var Symfony\Component\HttpFoundation\Request $request */
-$uri = Uri::new($request);
+$uri = ParsedUri::wrap('https://username:password@example.com/some/dir/file.html?q=abc&flag=1#test');
 
 // URIs are stringable
 $uri->toString();
@@ -39,7 +37,7 @@ $uri->toString();
 
 // check if absolute
 $uri->isAbsolute(); // true
-Uri::new('/some/path/only')->isAbsolute(); // false
+ParsedUri::wrap('/some/path/only')->isAbsolute(); // false
 
 // SCHEME
 $uri->scheme()->toString(); // "https"
@@ -47,17 +45,17 @@ $uri->scheme()->equals('https'); // true
 $uri->scheme()->in(['https', 'http']); // true
 
 // scheme segments - ie some kind of dsn (delimiter defaults to "+")
-Uri::new('postmark+smtp://id')->scheme()->segments(); // ["postmark", "smtp"]
-Uri::new('postmark+smtp://id')->scheme()->segment(0); // "postmark"
-Uri::new('postmark+smtp://id')->scheme()->segment(1); // "smtp"
-Uri::new('postmark+smtp://id')->scheme()->segment(2); // null
-Uri::new('postmark+smtp://id')->scheme()->segment(2, 'default'); // "default"
-Uri::new('postmark+smtp://id')->scheme()->contains('postmark'); // true
+ParsedUri::wrap('postmark+smtp://id')->scheme()->segments(); // ["postmark", "smtp"]
+ParsedUri::wrap('postmark+smtp://id')->scheme()->segment(0); // "postmark"
+ParsedUri::wrap('postmark+smtp://id')->scheme()->segment(1); // "smtp"
+ParsedUri::wrap('postmark+smtp://id')->scheme()->segment(2); // null
+ParsedUri::wrap('postmark+smtp://id')->scheme()->segment(2, 'default'); // "default"
+ParsedUri::wrap('postmark+smtp://id')->scheme()->contains('postmark'); // true
 
 // customize the delimiter
-Uri::new('postmark-smtp://id')->scheme()->segments('-'); // ["postmark", "smtp"]
-Uri::new('postmark-smtp://id')->scheme()->segment(0, delimiter: '-'); // ["postmark", "smtp"]
-Uri::new('postmark-smtp://id')->scheme()->contains('postmark', delimiter: '-'); // true
+ParsedUri::wrap('postmark-smtp://id')->scheme()->segments('-'); // ["postmark", "smtp"]
+ParsedUri::wrap('postmark-smtp://id')->scheme()->segment(0, delimiter: '-'); // ["postmark", "smtp"]
+ParsedUri::wrap('postmark-smtp://id')->scheme()->contains('postmark', delimiter: '-'); // true
 
 // HOST
 $uri->host()->toString(); // example.com
@@ -66,19 +64,19 @@ $uri->host()->segment(0); // "example"
 $uri->host()->tld(); // "com"
 
 // USER/PASS
-$uri->user(); // "username"
-$uri->pass(); // "password"
+$uri->username(); // "username"
+$uri->password(); // "password"
 
-Uri::new('http://foo%40bar.com:pass%23word@example.com')->user(); // foo@bar.com (urldecoded)
-Uri::new('http://foo%40bar.com:pass%23word@example.com')->pass(); // pass#word (urldecoded)
+ParsedUri::wrap('http://foo%40bar.com:pass%23word@example.com')->username(); // foo@bar.com (urldecoded)
+ParsedUri::wrap('http://foo%40bar.com:pass%23word@example.com')->password(); // pass#word (urldecoded)
 
 // PORT
 $uri->port(); // (null)
-Uri::new('example.com:21')->port(); // 21
+ParsedUri::wrap('example.com:21')->port(); // 21
 
 // guess port from scheme
-Uri::new('http://example.com')->guessPort(); // 80
-Uri::new('http://example.com:555')->guessPort(); // 555 (returns explicitly set port if available)
+ParsedUri::wrap('http://example.com')->guessPort(); // 80
+ParsedUri::wrap('http://example.com:555')->guessPort(); // 555 (returns explicitly set port if available)
 
 // PATH
 $uri->path()->toString(); // "/some/dir/file.html"
@@ -92,14 +90,14 @@ $uri->path()->basename(); // "file.html"
 $uri->path()->extension(); // "html"
 
 // path helper methods
-Uri::new('/some/dir/')->path()->rtrim(); // "/some/dir"
-Uri::new('/some/dir')->path()->isAbsolute(); // true
-Uri::new('some/dir')->path()->isAbsolute(); // false
-Uri::new('/some/dir/..')->path()->absolute(); // "/some"
-Uri::new('/..')->path()->absolute(); // (throws \RuntimeException - path outside of root)
-Uri::new('/some/dir')->path()->prepend('pre/fix'); // "/pre/fix/some/dir"
-Uri::new('/some/dir')->path()->append('suf/fix'); // "/some/dir/suf/fix"
-Uri::new('/foo%20bar/baz')->path()->toString(); // "/foo bar/baz" (urldecoded)
+ParsedUri::wrap('/some/dir/')->path()->rtrim(); // "/some/dir"
+ParsedUri::wrap('/some/dir')->path()->isAbsolute(); // true
+ParsedUri::wrap('some/dir')->path()->isAbsolute(); // false
+ParsedUri::wrap('/some/dir/..')->path()->absolute(); // "/some"
+ParsedUri::wrap('/..')->path()->absolute(); // (throws \RuntimeException - path outside of root)
+ParsedUri::wrap('/some/dir')->path()->prepend('pre/fix'); // "/pre/fix/some/dir"
+ParsedUri::wrap('/some/dir')->path()->append('suf/fix'); // "/some/dir/suf/fix"
+ParsedUri::wrap('/foo%20bar/baz')->path()->toString(); // "/foo bar/baz" (urldecoded)
 
 // QUERY
 $uri->query()->toString(); // "q=abc&flag=1"
@@ -125,20 +123,20 @@ $uri->query()->getInt('missing', new \Exception()); // (throws passed \Exception
 // FRAGMENT
 $uri->fragment(); // "test"
 
-Uri::new('http://example.com')->fragment(); // (null)
-Uri::new('http://example.com#frag%20ment')->fragment(); // "frag ment" (urldecoded)
+ParsedUri::wrap('http://example.com')->fragment(); // (null)
+ParsedUri::wrap('http://example.com#frag%20ment')->fragment(); // "frag ment" (urldecoded)
 ```
 
 ## Manipulating URIs
 
-> **Note**: `Zenstruck\Uri` is an immutable object so any manipulations results in a new
+> **Note**: `Zenstruck\Uri\ParsedUri` is an immutable object so any manipulations results in a new
 > instance.
 
 ```php
-use Zenstruck\Uri;
+use Zenstruck\Uri\ParsedUri;
 
 // URI used for the following examples
-$uri = Uri::new('https://user:pass@example.com/path?q=abc&flag=1#test');
+$uri = ParsedUri::wrap('https://user:pass@example.com/path?q=abc&flag=1#test');
 
 // SCHEME
 $uri->withScheme('http')->toString(); // "http://user:pass@example.com/path?q=abc&flag=1#test"
@@ -149,16 +147,16 @@ $uri->withHost('localhost')->toString(); // "https://user:pass@localhost/path?q=
 $uri->withoutHost()->toString(); // "https:/path?q=abc&flag=1#test" (removes username/password/port as well)
 
 // USER
-$uri->withUser('foo@bar.com')->toString(); // "https://foo%40bar.com:pass@example.com/path?q=abc&flag=1#test" (urlencoded)
-$uri->withoutUser()->toString(); // "https://example.com/path?q=abc&flag=1#test" (removes password as well)
+$uri->withUsername('foo@bar.com')->toString(); // "https://foo%40bar.com:pass@example.com/path?q=abc&flag=1#test" (urlencoded)
+$uri->withoutUsername()->toString(); // "https://example.com/path?q=abc&flag=1#test" (removes password as well)
 
 // PASSWORD
-$uri->withPass('pass#word')->toString(); // "https://user:pass%23word@example.com/path?q=abc&flag=1#test" (urlencoded)
-$uri->withoutPass()->toString(); // "https://user@example.com/path?q=abc&flag=1#test"
+$uri->withPassword('pass#word')->toString(); // "https://user:pass%23word@example.com/path?q=abc&flag=1#test" (urlencoded)
+$uri->withoutPassword()->toString(); // "https://user@example.com/path?q=abc&flag=1#test"
 
 // PORT
 $uri->withPort(555)->toString(); // "https://user:pass@example.com:555/path?q=abc&flag=1#test"
-Uri::new('http://example.com:22')->withoutPort()->toString(); // "http://example.com"
+ParsedUri::new('http://example.com:22')->withoutPort()->toString(); // "http://example.com"
 
 // PATH
 $uri->withPath('/replace')->toString(); // "https://user:pass@example.com/replace?q=abc&flag=1#test"
@@ -178,7 +176,7 @@ $uri->withFragment('frag ment')->toString(); // "https://user:pass@example.com/p
 $uri->withoutFragment()->toString(); // "https://user:pass@example.com/path?q=abc&flag=1"
 
 // URI Builder
-Uri::new()
+ParsedUri::new()
     ->withHost('example.com')
     ->withScheme('https')
     ->withPath('/path')
@@ -194,7 +192,7 @@ Uri::new()
 You can sign a URI:
 
 ```php
-$uri = Zenstruck\Uri::new('https://example.com/some/path');
+$uri = Zenstruck\Uri\ParsedUri::wrap('https://example.com/some/path');
 
 (string) $uri->sign('a secret'); // "https://example.com/some/path?_hash=..."
 ```
@@ -204,7 +202,7 @@ $uri = Zenstruck\Uri::new('https://example.com/some/path');
 Make an expiring signed URI:
 
 ```php
-$uri = Zenstruck\Uri::new('https://example.com/some/path');
+$uri = Zenstruck\Uri\ParsedUri::wrap('https://example.com/some/path');
 
 (string) $uri->sign('a secret')->expires(new \DateTime('tomorrow')); // "https://example.com/some/path?_expires=...&_hash=..."
 
@@ -223,7 +221,7 @@ These URIs are generated with a token that should change _once the URI has been 
 > after the token is successfully used, else it will still be valid.
 
 ```php
-$uri = Zenstruck\Uri::new('https://example.com/some/path');
+$uri = Zenstruck\Uri\ParsedUri::wrap('https://example.com/some/path');
 
 (string) $uri->sign('a secret')->singleUse('some-token'); // "https://example.com/some/path?_token=...&_hash=..."
 ```
@@ -233,11 +231,11 @@ $uri = Zenstruck\Uri::new('https://example.com/some/path');
 
 ### Signed URI Builder
 
-Calling `Zenstruck\Uri::sign()` returns a `Zenstruck\Uri\Signed\Builder` object that can be used to
+Calling `Zenstruck\Uri\ParsedUri::sign()` returns a `Zenstruck\Uri\Signed\Builder` object that can be used to
 create single-use _and_ temporary URIs.
 
 ```php
-$uri = Zenstruck\Uri::new('https://example.com/some/path');
+$uri = Zenstruck\Uri\ParsedUri::wrap('https://example.com/some/path');
 
 $builder = $uri->sign('a secret'); // Zenstruck\Uri\Signed\Builder
 
@@ -254,16 +252,16 @@ $builder = $uri->sign('a secret')
 
 ### Verification
 
-To verify a signed URI, create an instance of `Zenstruck\Uri` and call `Uri::isVerified()` to
-get true/false or `Uri::verify()` to throw specific exceptions:
+To verify a signed URI, create an instance of `Zenstruck\Uri\ParsedUri` and call `isVerified()` to
+get true/false or `verify()` to throw specific exceptions:
 
 ```php
-use Zenstruck\Uri;
+use Zenstruck\Uri\ParsedUri;
 use Zenstruck\Uri\Signed\Exception\InvalidSignature;
 use Zenstruck\Uri\Signed\Exception\ExpiredUri;
 use Zenstruck\Uri\Signed\Exception\VerificationFailed;
 
-$signedUri = Uri::new('http://example.com/some/path?_hash=...');
+$signedUri = ParsedUri::wrap('http://example.com/some/path?_hash=...');
 
 $signedUri->isVerified('a secret'); // true/false
 
@@ -296,13 +294,13 @@ use Zenstruck\Uri\Signed\Exception\InvalidSignature;
 use Zenstruck\Uri\Signed\Exception\ExpiredUri;
 use Zenstruck\Uri\Signed\Exception\UriAlreadyUsed;
 
-/** @var \Zenstruck\Uri $uri */
+/** @var \Zenstruck\Uri\ParsedUri $uri */
 
 $uri->isVerified('a secret', 'some token'); // true/false
 
 // catch specific exceptions
 try {
-    $signedUri->verify('a secret', 'some token');
+    $uri->verify('a secret', 'some token');
 } catch (InvalidSignature $e) {
     $e::REASON; // "Invalid signature."
     $e->uri(); // \Zenstruck\Uri
@@ -318,16 +316,13 @@ try {
 
 ### `SignedUri`
 
-`Zenstruck\Uri\Signed\Builder::create()` and `Zenstruck\Uri::verify()` both return a `Zenstruck\Uri\SignedUri`
-object that extends `Zenstruck\Uri` and has some helpful methods.
+`Zenstruck\Uri\Signed\Builder::create()` and `Zenstruck\Uri\ParsedUri::verify()` both return a
+`Zenstruck\Uri\SignedUri` object that extends `Zenstruck\Uri` and has some helpful methods.
 
-> **Note**: `Zenstruck\Uri\SignedUri` is:
-> 1. Always considered verified.
-> 2. Cannot be cloned so the [manipulation methods](#manipulating-uris) cannot be called.
-> 3. Cannot be constructed directly, must be created through `Uri::verify()` or `Builder::create()`
+> **Note**: `Zenstruck\Uri\SignedUri` is always considered verified and cannot be manipulated.
 
 ```php
-$uri = Zenstruck\Uri::new('https://example.com/some/path');
+$uri = Zenstruck\Uri\ParsedUri::wrap('https://example.com/some/path');
 
 // create from the builder
 $signedUri = $uri->sign('a secret')
@@ -337,7 +332,7 @@ $signedUri = $uri->sign('a secret')
 ; // Zenstruck\Uri\SignedUri
 
 // create from verify
-$uri->verify('a secret'); // Zenstruck\Uri\SignedUri
+$signedUri = $uri->verify('a secret'); // Zenstruck\Uri\SignedUri
 
 $signedUri->isSingleUse(); // true
 $signedUri->isTemporary(); // true
@@ -347,7 +342,39 @@ $signedUri->expiresAt(); // \DateTimeImmutable
 $signedUri->query(); // Zenstruck\Uri\Query
 ```
 
-## `Mailto` URIs
+## `UriLink`
+
+A [PSR-13 Link](https://www.php-fig.org/psr/psr-13/) implementation is provided with:
+* `Zenstruck\Uri\Link\UriLink` (implements both `Psr\Link\LinkInterface` and `Zenstruck\Uri`).
+* `Zenstruck\Uri\Link\UriLinkProvider` (implements `Psr\Link\LinkProviderInterface` and
+  provides `Zenstruck\Uri\Link\UriLink`'s).
+
+## `TemplateUri`
+
+> **Note**: `rize/uri-template` is required to use `TemplateUri` - `composer require rize/uri-template`.
+
+`Zenstruck\Uri\TemplateUri` allows creating/manipulating [RFC 6570](http://tools.ietf.org/html/rfc6570)
+uri templates and implements `Zenstruck\Uri`.
+
+```php
+use Zenstruck\Uri\TemplateUri;
+
+// Expand
+$uri = TemplateUri::expand('/repos/{owner}/{repo}', ['owner' => 'kbond', 'repo' => 'foundry']);
+
+(string) $uri; // "/repos/kbond/foundry"
+$uri->template(); // "/repos/{owner}/{repo}"
+$uri->parameters()->all(); // ['owner' => 'kbond', 'repo' => 'foundry']
+
+// Extract
+$uri = TemplateUri::extract('/repos/{owner}/{repo}', '/repos/kbond/foundry');
+
+(string) $uri; // "/repos/kbond/foundry"
+$uri->template(); // "/repos/{owner}/{repo}"
+$uri->parameters()->all(); // ['owner' => 'kbond', 'repo' => 'foundry']
+```
+
+## `Mailto`
 
 > **Note**: `Zenstruck\Uri\Mailto` is an immutable object so any manipulations results in a new
 > instance.
@@ -356,7 +383,7 @@ $signedUri->query(); // Zenstruck\Uri\Query
 use Zenstruck\Uri\Mailto;
 
 // Build
-$mailto = Mailto::new('kevin@example.com')
+$mailto = Mailto::wrap('kevin@example.com')
     ->addTo('jane@example.com', 'Jane')
     ->addCc('ryan@example.com')
     ->addBcc('wouter@example.com')
