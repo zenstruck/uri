@@ -1,7 +1,7 @@
 # zenstruck/uri
 
 [![CI](https://github.com/zenstruck/uri/actions/workflows/ci.yml/badge.svg)](https://github.com/zenstruck/uri/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/zenstruck/uri/branch/1.x/graph/badge.svg?token=33QG3ZA3G0)](https://codecov.io/gh/zenstruck/uri)
+[![codecov](https://codecov.io/gh/zenstruck/uri/branch/2.x/graph/badge.svg?token=33QG3ZA3G0)](https://codecov.io/gh/zenstruck/uri)
 
 Object-oriented wrapper/manipulator for `parse_url` with the following features:
 * Read URI _parts_ as objects (`Scheme`, `Host`, `Path`, `Query`), each with their own
@@ -11,11 +11,11 @@ Object-oriented wrapper/manipulator for `parse_url` with the following features:
 * [Mailto object](#mailto) to help with reading/manipulating `mailto:` URIs.
 * [URI Template](#templateuri) ([RFC 6570](http://tools.ietf.org/html/rfc6570)) support.
 * [PSR-13 Link](#urilink) implementation/bridge.
-* Optional [Twig extension](#twig-extension).
+* [Twig Extension](#twig-extension).
 
 This library is meant as a wrapper for PHP's `parse_url` function only and does not
-conform to any PSR or RFC. If you need this, [league/uri](https://uri.thephpleague.com/)
-would be a better choice.
+conform to any URI-related PSR or RFC. If you need this,
+[league/uri](https://uri.thephpleague.com/) would be a better choice.
 
 ## Installation
 
@@ -402,7 +402,7 @@ $mailto->subject(); // "my subject"
 $mailto->body(); // "my body"
 ```
 
-## Twig extension
+## Twig Extension
 
 A [twig](https://twig.symfony.com/) extension providing `uri`, `mailto` filters and
 functions is included.
