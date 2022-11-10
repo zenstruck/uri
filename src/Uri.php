@@ -11,64 +11,41 @@ use Zenstruck\Uri\Part\Scheme;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-abstract class Uri implements \Stringable
+interface Uri extends \Stringable
 {
-    final public function __toString(): string
-    {
-        return $this->toString();
-    }
+    public function scheme(): Scheme;
 
-    abstract public function scheme(): Scheme;
-
-    abstract public function authority(): Authority;
+    public function authority(): Authority;
 
     /**
      * @return string|null "urldecoded"
      */
-    final public function username(): ?string
-    {
-        return $this->authority()->username();
-    }
+    public function username(): ?string;
 
     /**
      * @return string|null "urldecoded"
      */
-    final public function password(): ?string
-    {
-        return $this->authority()->password();
-    }
+    public function password(): ?string;
 
-    final public function host(): Host
-    {
-        return $this->authority()->host();
-    }
+    public function host(): Host;
 
-    final public function port(): ?int
-    {
-        return $this->authority()->port();
-    }
+    public function port(): ?int;
 
-    abstract public function path(): Path;
+    public function path(): Path;
 
-    abstract public function query(): Query;
+    public function query(): Query;
 
     /**
      * @return string|null "urldecoded"
      */
-    abstract public function fragment(): ?string;
+    public function fragment(): ?string;
 
     /**
      * @return int|null The explicit port or the default for the scheme
      */
-    final public function guessPort(): ?int
-    {
-        return $this->port() ?? $this->scheme()->defaultPort();
-    }
+    public function guessPort(): ?int;
 
-    final public function isAbsolute(): bool
-    {
-        return !$this->scheme()->isEmpty();
-    }
+    public function isAbsolute(): bool;
 
-    abstract public function toString(): string;
+    public function toString(): string;
 }

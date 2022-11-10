@@ -317,7 +317,7 @@ try {
 ### `SignedUri`
 
 `Zenstruck\Uri\Signed\Builder::create()` and `Zenstruck\Uri\ParsedUri::verify()` both return a
-`Zenstruck\Uri\SignedUri` object that extends `Zenstruck\Uri` and has some helpful methods.
+`Zenstruck\Uri\SignedUri` object that implements `Zenstruck\Uri` and has some helpful methods.
 
 > **Note**: `Zenstruck\Uri\SignedUri` is always considered verified and cannot be manipulated.
 
@@ -338,7 +338,7 @@ $signedUri->isSingleUse(); // true
 $signedUri->isTemporary(); // true
 $signedUri->expiresAt(); // \DateTimeImmutable
 
-// extends Zenstruck\Uri
+// implements Zenstruck\Uri
 $signedUri->query(); // Zenstruck\Uri\Query
 ```
 

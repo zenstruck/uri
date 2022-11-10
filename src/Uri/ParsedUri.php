@@ -2,7 +2,6 @@
 
 namespace Zenstruck\Uri;
 
-use Zenstruck\Uri;
 use Zenstruck\Uri\Part\Authority;
 use Zenstruck\Uri\Part\Host;
 use Zenstruck\Uri\Part\Path;
@@ -21,7 +20,7 @@ use Zenstruck\Uri\Signed\Exception\VerificationFailed;
  *
  * @immutable
  */
-final class ParsedUri extends Uri
+final class ParsedUri extends BaseUri
 {
     /**
      * @var array{

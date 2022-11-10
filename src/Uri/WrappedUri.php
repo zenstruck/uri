@@ -11,7 +11,7 @@ use Zenstruck\Uri\Part\Scheme;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-abstract class WrappedUri extends Uri
+abstract class WrappedUri extends BaseUri
 {
     final public function scheme(): Scheme
     {
