@@ -142,7 +142,7 @@ final class ParsedUri extends BaseUri
 
     public function fragment(): ?string
     {
-        $this->fragment ??= \rawurldecode($this->parsed['fragment'] ?? '');
+        $this->fragment ??= \rawurldecode($this->parse()->parsed['fragment'] ?? '');
 
         return '' === $this->fragment ? null : $this->fragment;
     }

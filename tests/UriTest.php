@@ -34,6 +34,16 @@ abstract class UriTest extends TestCase
 
     /**
      * @test
+     */
+    public function fragment_is_parsed(): void
+    {
+        $uri = $this->uriFor('https://user:pass@example.com:8080/path/123?q=abc#test');
+
+        $this->assertSame('test', $uri->fragment());
+    }
+
+    /**
+     * @test
      *
      * @dataProvider getValidUris
      */
