@@ -11,7 +11,7 @@ use Zenstruck\Uri\ParsedUri;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class UriExtension extends AbstractExtension
+class UriExtension extends AbstractExtension
 {
     public function getFunctions(): array
     {
