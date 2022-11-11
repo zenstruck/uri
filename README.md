@@ -31,6 +31,9 @@ use Zenstruck\Uri\ParsedUri;
 // wrap a uri (this URI will be used for many of the samples below)
 $uri = ParsedUri::wrap('https://username:password@example.com/some/dir/file.html?q=abc&flag=1#test');
 
+// can wrap an instance of \Symfony\Component\HttpFoundation\Request
+$uri = ParsedUri::wrap($request);
+
 // URIs are stringable
 $uri->toString();
 (string) $uri;

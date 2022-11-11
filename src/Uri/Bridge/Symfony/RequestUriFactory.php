@@ -20,9 +20,7 @@ final class RequestUriFactory
     public function create(?Request $request = null): ParsedUri
     {
         $request ??= $this->requests->getCurrentRequest() ?? throw new \RuntimeException('Current request not available.');
-        $qs = ($qs = $request->server->get('QUERY_STRING')) ? '?'.$qs : '';
 
-        // we cannot use $request->getUri() here as we want to work with the original URI (no query string reordering)
-        return ParsedUri::wrap($request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo().$qs);
+        return ParsedUri::wrap($request);
     }
 }
