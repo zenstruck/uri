@@ -118,10 +118,6 @@ final class ParsedUri extends BaseUri
 
     public function authority(): Authority
     {
-        if (isset($this->authority)) {
-            return $this->authority;
-        }
-
         return $this->authority ??= new Authority(
             new Host($this->parse()->parsed['host'] ?? null),
             $this->parsed['user'] ?? null,
