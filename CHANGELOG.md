@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [v2.2.1](https://github.com/zenstruck/uri/releases/tag/v2.2.1)
+
+November 11th, 2022 - [v2.2.0...v2.2.1](https://github.com/zenstruck/uri/compare/v2.2.0...v2.2.1)
+
+* eaf52a5 [minor] simplify code by @kbond
+* c08f0a4 [bug] fix fragment not being parsed correctly by @kbond
+
 ## [v2.2.0](https://github.com/zenstruck/uri/releases/tag/v2.2.0)
 
 November 11th, 2022 - [v2.1.0...v2.2.0](https://github.com/zenstruck/uri/compare/v2.1.0...v2.2.0)
