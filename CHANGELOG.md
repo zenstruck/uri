@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v2.2.0](https://github.com/zenstruck/uri/releases/tag/v2.2.0)
+
+November 11th, 2022 - [v2.1.0...v2.2.0](https://github.com/zenstruck/uri/compare/v2.1.0...v2.2.0)
+
+* 055639d [feature] allow ParsedUri to wrap a Symfony Request (#19) by @kbond
+
 ## [v2.1.0](https://github.com/zenstruck/uri/releases/tag/v2.1.0)
 
 November 11th, 2022 - [v2.0.0...v2.1.0](https://github.com/zenstruck/uri/compare/v2.0.0...v2.1.0)
