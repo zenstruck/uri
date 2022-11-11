@@ -2,6 +2,7 @@
 
 namespace Zenstruck\Uri;
 
+use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Uri\Part\Authority;
 use Zenstruck\Uri\Part\Host;
 use Zenstruck\Uri\Part\Path;
@@ -57,8 +58,15 @@ final class ParsedUri extends BaseUri
         return $what instanceof self ? $what : new self((string) $what);
     }
 
-    public static function wrap(self|string|null $what): self
+    public static function wrap(self|string|null|Request $what): self
     {
+        if ($what instanceof Request) {
+            $qs = ($qs = $what->server->get('QUERY_STRING')) ? '?'.$qs : '';
+
+            // we cannot use $request->getUri() here as we want to work with the original URI (no query string reordering)
+            $what = $what->getSchemeAndHttpHost().$what->getBaseUrl().$what->getPathInfo().$qs;
+        }
+
         return self::new($what);
     }
 
