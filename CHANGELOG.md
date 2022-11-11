@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [2.0.0](https://github.com/zenstruck/uri/releases/tag/2.0.0)
+## [v2.0.0](https://github.com/zenstruck/uri/releases/tag/v2.0.0)
 
 November 10th, 2022 - _[Release](https://github.com/zenstruck/uri/commits/v2.0.0)_
 
