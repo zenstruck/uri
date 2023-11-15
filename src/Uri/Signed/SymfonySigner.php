@@ -11,7 +11,8 @@
 
 namespace Zenstruck\Uri\Signed;
 
-use Symfony\Component\HttpKernel\UriSigner;
+use Symfony\Component\HttpFoundation\UriSigner;
+use Symfony\Component\HttpKernel\UriSigner as LegacyUriSigner;
 use Zenstruck\Uri;
 use Zenstruck\Uri\ParsedUri;
 use Zenstruck\Uri\Signed\Exception\AlreadyUsed;
@@ -27,15 +28,12 @@ final class SymfonySigner
     private const SINGLE_USE_TOKEN_KEY = '_token';
     private const HASH_KEY = '_hash';
 
-    private UriSigner $signer;
+    /** @var UriSigner|LegacyUriSigner  */
+    private $signer; // @phpstan-ignore-line
 
     public function __construct(string $secret)
     {
-        if (!\class_exists(UriSigner::class)) {
-            throw new \LogicException('symfony/http-kernel is required to sign URIs. Install with "composer require symfony/http-kernel".');
-        }
-
-        $this->signer = new UriSigner($secret, self::HASH_KEY);
+        $this->signer = self::createSigner($secret, self::HASH_KEY);
     }
 
     public static function create(self|string $secret): self
@@ -57,10 +55,10 @@ final class SymfonySigner
         }
 
         if ($singleUseToken) {
-            $uri = (new UriSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY))->sign($uri);
+            $uri = self::createSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY)->sign($uri); // @phpstan-ignore-line
         }
 
-        return [new ParsedUri($this->signer->sign($uri)), $expiresAt, (bool) $singleUseToken];
+        return [new ParsedUri($this->signer->sign($uri)), $expiresAt, (bool) $singleUseToken]; // @phpstan-ignore-line
     }
 
     /**
@@ -73,7 +71,7 @@ final class SymfonySigner
         $uri = ParsedUri::wrap($uri);
         $expiresAt = null;
 
-        if (!$this->signer->check($uri)) {
+        if (!$this->signer->check($uri)) { // @phpstan-ignore-line
             throw new InvalidSignature($uri);
         }
 
@@ -101,10 +99,23 @@ final class SymfonySigner
 
         $withoutHash = $uri->withoutQueryParams(self::HASH_KEY); // @phpstan-ignore-line
 
-        if (!(new UriSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY))->check($withoutHash)) {
+        if (!self::createSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY)->check($withoutHash)) {
             throw new AlreadyUsed($uri);
         }
 
         return [$uri, $expiresAt, true];
+    }
+
+    private static function createSigner(#[\SensitiveParameter] string $secret, string $parameter = '_hash'): UriSigner|LegacyUriSigner // @phpstan-ignore-line
+    {
+        if (\class_exists(UriSigner::class)) {
+            return new UriSigner($secret, $parameter);
+        }
+
+        if (\class_exists(LegacyUriSigner::class)) {
+            return new LegacyUriSigner($secret, $parameter);
+        }
+
+        throw new \LogicException('symfony/http-foundation is required to sign URIs. Install with "composer require symfony/http-foundation".');
     }
 }
