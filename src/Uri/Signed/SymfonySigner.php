@@ -28,7 +28,7 @@ final class SymfonySigner
     private const SINGLE_USE_TOKEN_KEY = '_token';
     private const HASH_KEY = '_hash';
 
-    /** @var UriSigner|LegacyUriSigner  */
+    /** @var UriSigner|LegacyUriSigner */
     private $signer; // @phpstan-ignore-line
 
     public function __construct(string $secret)
