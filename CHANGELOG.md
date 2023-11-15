@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [v2.3.0](https://github.com/zenstruck/uri/releases/tag/v2.3.0)
+
+November 15th, 2023 - [v2.2.1...v2.3.0](https://github.com/zenstruck/uri/compare/v2.2.1...v2.3.0)
+
+* 06b8551 feat: support Symfony 7 (#21) by @kbond
+* c82ea86 minor: adjust deprecation reporting in tests (#21) by @kbond
+* 23bbba1 fix(ci): add token by @kbond
+* 9625161 chore(ci): fix by @kbond
+* 46bd853 chore(ci): update (#20) by @kbond
+
 ## [v2.2.1](https://github.com/zenstruck/uri/releases/tag/v2.2.1)
 
 November 11th, 2022 - [v2.2.0...v2.2.1](https://github.com/zenstruck/uri/compare/v2.2.0...v2.2.1)
