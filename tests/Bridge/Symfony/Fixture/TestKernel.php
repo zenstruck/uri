@@ -60,6 +60,6 @@ final class TestKernel extends Kernel
 
     protected function configureRoutes(RoutingConfigurator $routes): void
     {
-        $routes->import(__DIR__, 'annotation');
+        $routes->import(__DIR__, self::MAJOR_VERSION < 6 ? 'annotation' : 'attribute');
     }
 }
