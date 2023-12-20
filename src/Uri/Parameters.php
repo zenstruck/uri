@@ -43,7 +43,7 @@ final class Parameters
      *
      * @param T|\Throwable $default
      *
-     * @return T
+     * @return T|mixed
      *
      * @throws \Throwable If passed as default and no match
      */
@@ -57,11 +57,21 @@ final class Parameters
     }
 
     /**
-     * @throws \Throwable If passed as default and no match
+     * @throws \Throwable If passed as default and no match OR if value cannot be converted to a string
      */
     public function getString(string $param, string|\Throwable $default = ''): string
     {
-        return (string) $this->get($param, $default);
+        $value = $this->get($param, $default);
+
+        if (\is_scalar($value) || null === $value || $value instanceof \Stringable) {
+            return (string) $value;
+        }
+
+        if ($default instanceof \Throwable) {
+            throw $default;
+        }
+
+        return $default;
     }
 
     /**
