@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v2.3.1](https://github.com/zenstruck/uri/releases/tag/v2.3.1)
+
+December 20th, 2023 - [v2.3.0...v2.3.1](https://github.com/zenstruck/uri/compare/v2.3.0...v2.3.1)
+
+* c9c9cd8 fix: `getString()` behaviour for non-scalar values (#22) by @kbond
+
 ## [v2.3.0](https://github.com/zenstruck/uri/releases/tag/v2.3.0)
 
 November 15th, 2023 - [v2.2.1...v2.3.0](https://github.com/zenstruck/uri/compare/v2.2.1...v2.3.0)
