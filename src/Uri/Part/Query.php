@@ -71,7 +71,7 @@ final class Query extends Part
     }
 
     /**
-     * @throws \Throwable If passed as default and no match
+     * @throws \Throwable If passed as default and no match OR if value cannot be converted to a string
      */
     public function getString(string $param, string|\Throwable $default = ''): string
     {
