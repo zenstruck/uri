@@ -114,7 +114,7 @@ final class UriLinkProviderTest extends TestCase
                 'https://baz.com',
                 'https://qux.com',
             ],
-            \array_map(fn(UriLink $link) => $link->toString(), $links->getLinks())
+            \array_map(fn(UriLink $link) => $link->toString(), $links->getLinks()),
         );
 
         $this->assertSame(['next'], $links->getLinks()[1]->getRels());
@@ -138,7 +138,7 @@ final class UriLinkProviderTest extends TestCase
                 'https://baz.com',
                 'https://qux.com',
             ],
-            \array_map(fn(UriLink $link) => $link->toString(), \iterator_to_array($links))
+            \array_map(fn(UriLink $link) => $link->toString(), \iterator_to_array($links)),
         );
     }
 
@@ -156,7 +156,7 @@ final class UriLinkProviderTest extends TestCase
                 'https://baz.com',
                 'https://qux.com',
             ],
-            \array_map(fn(UriLink $link) => $link->toString(), $links->getLinks())
+            \array_map(fn(UriLink $link) => $link->toString(), $links->getLinks()),
         );
         $this->assertSame(
             [
@@ -164,7 +164,7 @@ final class UriLinkProviderTest extends TestCase
                 'https://baz.com',
                 'https://qux.com',
             ],
-            \array_map(fn(UriLink $link) => $link->toString(), $links->getLinksByRel('next'))
+            \array_map(fn(UriLink $link) => $link->toString(), $links->getLinksByRel('next')),
         );
     }
 

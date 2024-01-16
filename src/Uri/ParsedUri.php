@@ -131,7 +131,7 @@ final class ParsedUri extends BaseUri
             new Host($this->parse()->parsed['host'] ?? null),
             $this->parsed['user'] ?? null,
             $this->parsed['pass'] ?? null,
-            $this->parsed['port'] ?? null
+            $this->parsed['port'] ?? null,
         );
     }
 

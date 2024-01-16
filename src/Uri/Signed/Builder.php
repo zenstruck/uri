@@ -24,7 +24,7 @@ final class Builder implements \Stringable
     private ?\DateTimeImmutable $expiresAt = null;
     private ?string $singleUseToken = null;
 
-    public function __construct(private Uri $uri, private string|SymfonySigner $secret)
+    public function __construct(private Uri $uri, private string|Uri\Signed\SymfonySigner $secret)
     {
     }
 

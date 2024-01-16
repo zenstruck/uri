@@ -20,7 +20,7 @@ use Zenstruck\Uri\Part\Scheme;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-abstract class WrappedUri extends BaseUri
+abstract class WrappedUri extends Uri\BaseUri
 {
     final public function scheme(): Scheme
     {

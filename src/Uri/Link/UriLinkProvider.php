@@ -64,7 +64,7 @@ final class UriLinkProvider implements EvolvableLinkProviderInterface, \Countabl
     public function getLinksByRel($rel): iterable
     {
         return \array_values(
-            \array_filter($this->links, static fn(UriLink $l) => \in_array($rel, $l->getRels(), true))
+            \array_filter($this->links, static fn(UriLink $l) => \in_array($rel, $l->getRels(), true)),
         );
     }
 

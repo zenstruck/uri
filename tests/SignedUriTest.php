@@ -121,7 +121,7 @@ final class SignedUriTest extends UriTest
 
         $this->assertSame(
             $expiresAt->getTimestamp(),
-            ParsedUri::wrap('/foo/bar')->sign('1234')->expires($expiresAt)->create()->expiresAt()?->getTimestamp()
+            ParsedUri::wrap('/foo/bar')->sign('1234')->expires($expiresAt)->create()->expiresAt()?->getTimestamp(),
         );
     }
 

@@ -22,7 +22,7 @@ final class Authority extends Part
 {
     private string $string;
 
-    public function __construct(private Host $host, private ?string $username, private ?string $password, private ?int $port)
+    public function __construct(private Part\Host $host, private ?string $username, private ?string $password, private ?int $port)
     {
     }
 
@@ -31,13 +31,13 @@ final class Authority extends Part
         unset($this->string);
     }
 
-    public function host(): Host
+    public function host(): Part\Host
     {
         return $this->host;
     }
 
     /**
-     * @return string|null "urldecoded"
+     * @return Part\string|null "urldecoded"
      */
     public function username(): ?string
     {
@@ -45,7 +45,7 @@ final class Authority extends Part
     }
 
     /**
-     * @return string|null "urldecoded"
+     * @return Part\string|null "urldecoded"
      */
     public function password(): ?string
     {
@@ -75,7 +75,7 @@ final class Authority extends Part
     public function withHost(?string $host): self
     {
         $authority = clone $this;
-        $authority->host = new Host($host);
+        $authority->host = new Part\Host($host);
 
         if ($authority->host->isEmpty()) {
             $authority->username = null;
