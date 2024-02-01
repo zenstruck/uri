@@ -20,7 +20,7 @@ use Zenstruck\Uri\Signed\SymfonySigner;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class SignedUri extends Uri\WrappedUri
+final class SignedUri extends WrappedUri
 {
     private function __construct(private Uri $uri, private ?\DateTimeImmutable $expiresAt, private bool $singleUse)
     {
@@ -32,7 +32,7 @@ final class SignedUri extends Uri\WrappedUri
     }
 
     /**
-     * @param Uri\string|null $singleUseToken If passed, this value MUST change once the URL is considered "used"
+     * @param string|null $singleUseToken If passed, this value MUST change once the URL is considered "used"
      *
      * @throws Expired          if the URI has expired
      * @throws AlreadyUsed      if the URI has already been used

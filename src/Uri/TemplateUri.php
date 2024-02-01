@@ -19,11 +19,11 @@ use Zenstruck\Uri;
  *
  * @immutable
  */
-final class TemplateUri extends Uri\WrappedUri
+final class TemplateUri extends WrappedUri
 {
     private UriTemplate $parser;
     private Uri $uri;
-    private Uri\Parameters $parameters;
+    private Parameters $parameters;
 
     private function __construct(private string $template)
     {
@@ -35,9 +35,9 @@ final class TemplateUri extends Uri\WrappedUri
     /**
      * @param array<string,mixed>|Parameters $parameters
      */
-    public static function expand(string $template, array|Uri\Parameters $parameters): self
+    public static function expand(string $template, array|Parameters $parameters): self
     {
-        if ($parameters instanceof Uri\Parameters) {
+        if ($parameters instanceof Parameters) {
             $parameters = $parameters->all();
         }
 
@@ -50,7 +50,7 @@ final class TemplateUri extends Uri\WrappedUri
     public static function extract(string $template, string|Uri $uri): self
     {
         $ret = new self($template);
-        $ret->uri = Uri\ParsedUri::wrap($uri);
+        $ret->uri = ParsedUri::wrap($uri);
 
         return $ret;
     }
@@ -60,7 +60,7 @@ final class TemplateUri extends Uri\WrappedUri
         return $this->template;
     }
 
-    public function parameters(): Uri\Parameters
+    public function parameters(): Parameters
     {
         return $this->parameters ??= self::filterParameters($this->parser()->extract($this->template, $this->uri) ?? throw new \LogicException());
     }
@@ -106,15 +106,15 @@ final class TemplateUri extends Uri\WrappedUri
 
     protected function inner(): Uri
     {
-        return $this->uri ??= Uri\ParsedUri::wrap($this->parser()->expand($this->template, $this->parameters->all()));
+        return $this->uri ??= ParsedUri::wrap($this->parser()->expand($this->template, $this->parameters->all()));
     }
 
     /**
      * @param mixed[] $values
      */
-    private static function filterParameters(array $values): Uri\Parameters
+    private static function filterParameters(array $values): Parameters
     {
-        return new Uri\Parameters(\array_filter($values, static fn($v) => '' !== $v && null !== $v));
+        return new Parameters(\array_filter($values, static fn($v) => '' !== $v && null !== $v));
     }
 
     private function parser(): UriTemplate

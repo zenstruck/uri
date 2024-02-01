@@ -61,7 +61,7 @@ final class Query extends Part
      *
      * @param T|\Throwable $default
      *
-     * @return Part\T
+     * @return T
      *
      * @throws \Throwable If passed as default and no match
      */
