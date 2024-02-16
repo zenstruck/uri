@@ -67,7 +67,7 @@ final class ParsedUri extends BaseUri
         return $what instanceof self ? $what : new self((string) $what);
     }
 
-    public static function wrap(self|string|null|Request $what): self
+    public static function wrap(self|string|Request|null $what): self
     {
         if ($what instanceof Request) {
             $qs = ($qs = $what->server->get('QUERY_STRING')) ? '?'.$qs : '';
