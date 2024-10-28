@@ -45,7 +45,11 @@ final class UriLinkProvider implements EvolvableLinkProviderInterface, \Countabl
 
     public function firstForRel(string $rel): ?UriLink
     {
-        return $this->getLinksByRel($rel)[0] ?? null;
+        foreach ($this->getLinksByRel($rel) as $link) {
+            return $link;
+        }
+
+        return null;
     }
 
     /**
