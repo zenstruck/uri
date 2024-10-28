@@ -74,7 +74,7 @@ final class ZenstruckUriExtension extends ConfigurableExtension implements Confi
             ->setArguments([new Reference('.zenstruck_uri.signer'), new Reference('.zenstruck_uri.request_uri_factory')])
         ;
 
-        if (isset($container->getParameter('kernel.bundles')['TwigBundle'])) {
+        if (isset($container->getParameter('kernel.bundles')['TwigBundle'])) { // @phpstan-ignore-line
             $container->register('.zenstruck_uri.twig_extension', SymfonyUriExtension::class)
                 ->addTag('twig.extension')
             ;

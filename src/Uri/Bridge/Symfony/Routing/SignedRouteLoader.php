@@ -64,11 +64,12 @@ final class SignedRouteLoader implements LoaderInterface
     private static function parseSignedAttribute(Route $route): void
     {
         try {
-            $method = new \ReflectionMethod($route->getDefault('_controller'));
+            $method = \method_exists(\ReflectionMethod::class, 'createFromMethodName') ? \ReflectionMethod::createFromMethodName($route->getDefault('_controller')) : new \ReflectionMethod($route->getDefault('_controller'));
         } catch (\ReflectionException) {
             return;
         }
 
+        /** @var \ReflectionMethod $method */
         $attribute = $method->getAttributes(Signed::class)[0] ?? $method->getDeclaringClass()->getAttributes(Signed::class)[0] ?? null;
 
         if ($attribute) {
