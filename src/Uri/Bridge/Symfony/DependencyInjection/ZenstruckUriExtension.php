@@ -31,11 +31,11 @@ use Zenstruck\Uri\Signed\SymfonySigner;
  */
 final class ZenstruckUriExtension extends ConfigurableExtension implements ConfigurationInterface
 {
-    public function getConfigTreeBuilder(): TreeBuilder
+    public function getConfigTreeBuilder(): TreeBuilder // @phpstan-ignore-line
     {
         $builder = new TreeBuilder('zenstruck_uri');
 
-        $builder->getRootNode() // @phpstan-ignore-line
+        $builder->getRootNode()
             ->children()
                 ->scalarNode('secret')
                     ->info('The secret key to sign/verify URIs with')

@@ -16,8 +16,6 @@ use Zenstruck\Uri;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
- *
- * @immutable
  */
 final class TemplateUri extends WrappedUri
 {

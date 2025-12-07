@@ -27,8 +27,6 @@ use Zenstruck\Uri\Signed\Exception\VerificationFailed;
  * Wrapper for PHP's native "parse_url()".
  *
  * @author Kevin Bond <kevinbond@gmail.com>
- *
- * @immutable
  */
 final class ParsedUri extends BaseUri
 {
@@ -86,7 +84,7 @@ final class ParsedUri extends BaseUri
 
     public function toString(): string
     {
-        if (isset($this->value)) {
+        if (isset($this->value)) { // @phpstan-ignore isset.initializedProperty
             return $this->value;
         }
 

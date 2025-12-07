@@ -13,8 +13,6 @@ namespace Zenstruck\Uri;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
- *
- * @immutable
  */
 final class Parameters
 {

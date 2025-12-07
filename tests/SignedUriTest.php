@@ -140,7 +140,6 @@ final class SignedUriTest extends UriTest
         $class = new \ReflectionClass(SignedUri::class);
         $uri = $class->newInstanceWithoutConstructor();
         $prop = $class->getProperty('uri');
-        $prop->setAccessible(true);
         $prop->setValue($uri, new ParsedUri($value));
 
         return $uri;
