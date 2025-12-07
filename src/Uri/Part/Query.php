@@ -16,8 +16,6 @@ use Zenstruck\Uri\Part;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
- *
- * @immutable
  */
 final class Query extends Part
 {

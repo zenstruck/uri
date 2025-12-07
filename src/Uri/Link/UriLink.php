@@ -59,8 +59,6 @@ final class UriLink extends WrappedUri implements EvolvableLinkInterface
         $rels = [];
 
         foreach ($matches as [, $key, $value]) {
-            /** @var string $key */
-            /** @var string $value */
             if ('rel' !== $key) {
                 $attributes[$key] = $value;
 
@@ -157,8 +155,6 @@ final class UriLink extends WrappedUri implements EvolvableLinkInterface
     /**
      * @param string                                    $attribute
      * @param float|int|\Stringable|bool|mixed[]|string $value
-     *
-     * @return $this
      */
     public function withAttribute($attribute, $value): static
     {

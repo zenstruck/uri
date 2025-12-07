@@ -16,8 +16,6 @@ use Zenstruck\Uri\SignedUri;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
- *
- * @immutable
  */
 final class Builder implements \Stringable
 {

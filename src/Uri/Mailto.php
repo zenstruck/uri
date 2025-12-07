@@ -79,12 +79,12 @@ final class Mailto implements \Stringable
 
     public function subject(): ?string
     {
-        return $this->uri->query()->get('subject');
+        return $this->uri->query()->getString('subject') ?: null;
     }
 
     public function body(): ?string
     {
-        return $this->uri->query()->get('body');
+        return $this->uri->query()->getString('body') ?: null;
     }
 
     public function withTo(string ...$to): self

@@ -64,7 +64,7 @@ final class SignedRouteLoader implements LoaderInterface
     private static function parseSignedAttribute(Route $route): void
     {
         try {
-            $method = \method_exists(\ReflectionMethod::class, 'createFromMethodName') ? \ReflectionMethod::createFromMethodName($route->getDefault('_controller')) : new \ReflectionMethod($route->getDefault('_controller'));
+            $method = \method_exists(\ReflectionMethod::class, 'createFromMethodName') ? \ReflectionMethod::createFromMethodName($route->getDefault('_controller')) : new \ReflectionMethod($route->getDefault('_controller')); // @phpstan-ignore function.alreadyNarrowedType
         } catch (\ReflectionException) {
             return;
         }
