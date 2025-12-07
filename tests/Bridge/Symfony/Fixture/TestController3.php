@@ -12,7 +12,7 @@
 namespace Zenstruck\Uri\Tests\Bridge\Symfony\Fixture;
 
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Zenstruck\Uri\Bridge\Symfony\Routing\Signed;
 
 /**
