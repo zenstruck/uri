@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [v2.4.0](https://github.com/zenstruck/uri/releases/tag/v2.4.0)
+
+December 7th, 2025 - [v2.3.1...v2.4.0](https://github.com/zenstruck/uri/compare/v2.3.1...v2.4.0)
+
+* 75984c6 minor: upgrade PHPStan to 2 (#25) by @kbond
+* b639aaa feat: Symfony 8 support (#25) by @kbond
+* 250baaf minor: php 8.4 support (#24) by @kbond
+* 1cc38f9 minor: fix deprecations/sca (#24) by @kbond
+
 ## [v2.3.1](https://github.com/zenstruck/uri/releases/tag/v2.3.1)
 
 December 20th, 2023 - [v2.3.0...v2.3.1](https://github.com/zenstruck/uri/compare/v2.3.0...v2.3.1)
