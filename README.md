@@ -441,3 +441,7 @@ Zenstruck\Uri\Bridge\Twig\UriExtension:
 {{ uri().withScheme('https').withHost('example.com') }} {# https://example.com #}
 {{ mailto().withTo('kevin@example.com').withSubject('my subject') }} {# mailto:kevin%40example.com?subject=my%20subject #}
 ```
+
+## Security Policy
+
+If you discover a security vulnerability, please do not open a public issue or pull request. Instead, please review this repository's <a href="https://github.com/zenstruck/uri/security">Security Policy</a> for instructions on how to report it responsibly.
