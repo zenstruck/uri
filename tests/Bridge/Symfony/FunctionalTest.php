@@ -11,8 +11,10 @@
 
 namespace Zenstruck\Uri\Tests\Bridge\Symfony;
 
+use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Zenstruck\Uri\Bridge\Symfony\Routing\SignedUrlGenerator;
 use Zenstruck\Uri\ParsedUri;
 use Zenstruck\Uri\Signed\Exception\Expired;
@@ -24,6 +26,8 @@ use Zenstruck\Uri\Tests\Bridge\Symfony\Fixture\TestKernel;
  */
 final class FunctionalTest extends WebTestCase
 {
+    use ExpectDeprecationTrait;
+
     /**
      * @test
      *
@@ -60,7 +64,7 @@ final class FunctionalTest extends WebTestCase
         yield ['/prefix/method1', InvalidSignature::class];
         yield ['/prefix/method2', HttpException::class, 404];
         yield ['/method1', InvalidSignature::class];
-        yield [ParsedUri::wrap('http://localhost/method1')->sign(TestKernel::SECRET)->singleUse('foo')->create()->toString(), InvalidSignature::class];
+        yield [ParsedUri::wrap('http://localhost/method1')->sign(TestKernel::SECRET)->singleUse('foo')->expires('tomorrow')->create()->toString(), InvalidSignature::class];
         yield ['/method2', HttpException::class, 404];
     }
 
@@ -92,10 +96,10 @@ final class FunctionalTest extends WebTestCase
         /** @var SignedUrlGenerator $generator */
         $generator = self::getContainer()->get(SignedUrlGenerator::class);
 
-        $client->request('GET', $generator->generate('verify-with-route-option'));
+        $client->request('GET', $generator->temporary('tomorrow', 'verify-with-route-option'));
         self::assertResponseStatusCodeSame(200);
 
-        $client->request('GET', $generator->generate('verify-with-route-option', ['foo' => 'bar']));
+        $client->request('GET', $generator->temporary('tomorrow', 'verify-with-route-option', ['foo' => 'bar']));
         self::assertResponseStatusCodeSame(200);
 
         $client->request('GET', $generator->temporary('tomorrow', 'verify-with-route-option'));
@@ -104,7 +108,7 @@ final class FunctionalTest extends WebTestCase
         $client->request('GET', $generator->temporary('yesterday', 'verify-with-route-option'));
         self::assertResponseStatusCodeSame(500);
 
-        $client->request('GET', $generator->build('verify-with-route-option')->singleUse('foo'));
+        $client->request('GET', $generator->build('verify-with-route-option')->singleUse('foo')->expires('tomorrow'));
         self::assertResponseStatusCodeSame(500);
     }
 
@@ -118,16 +122,45 @@ final class FunctionalTest extends WebTestCase
         /** @var SignedUrlGenerator $generator */
         $generator = self::getContainer()->get(SignedUrlGenerator::class);
 
-        $client->request('GET', $generator->generate('verify'));
+        $client->request('GET', $generator->temporary('tomorrow', 'verify'));
         self::assertResponseStatusCodeSame(200);
 
-        $client->request('GET', $generator->generate('is-verify'));
+        $client->request('GET', $generator->temporary('tomorrow', 'is-verify'));
         self::assertResponseStatusCodeSame(200);
         $this->assertSame('Success', $client->getResponse()->getContent());
 
         $client->request('GET', '/is-verify');
         self::assertResponseStatusCodeSame(200);
         $this->assertSame('Failure', $client->getResponse()->getContent());
+    }
+
+    /**
+     * @test
+     *
+     * @group legacy
+     */
+    public function can_generate_without_expiration_with_deprecation(): void
+    {
+        $client = self::createClient();
+        $container = self::getContainer();
+        $generator = $container->get(SignedUrlGenerator::class);
+        $earliest = new \DateTimeImmutable('+1 year');
+
+        $this->assertInstanceOf(UrlGeneratorInterface::class, $generator);
+        $this->expectDeprecation('Signing a URI without an expiration is deprecated. Pass an expiration explicitly; defaulting to "+1 year".');
+
+        $url = $generator->generate('verify-with-route-option', ['foo' => 'bar']);
+        $latest = new \DateTimeImmutable('+1 year');
+        $uri = new ParsedUri($url);
+        $query = $uri->query();
+        $expiration = $query->getInt('_expires');
+
+        $this->assertGreaterThanOrEqual($earliest->getTimestamp(), $expiration);
+        $this->assertLessThanOrEqual($latest->getTimestamp(), $expiration);
+        $this->assertStringContainsString('foo=bar', $url);
+
+        $client->request('GET', $url);
+        self::assertResponseStatusCodeSame(200);
     }
 
     /**

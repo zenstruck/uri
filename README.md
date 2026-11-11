@@ -192,12 +192,12 @@ ParsedUri::new()
 
 > **Note**: `symfony/http-kernel` is required to sign and verify URIs `composer require symfony/http-kernel`.
 
-You can sign a URI:
+Signing a URI without an expiration is deprecated and defaults to `+1 year`. Call `expires()` before creating or converting a signed URI to a string:
 
 ```php
 $uri = Zenstruck\Uri\ParsedUri::wrap('https://example.com/some/path');
 
-(string) $uri->sign('a secret'); // "https://example.com/some/path?_hash=..."
+(string) $uri->sign('a secret')->expires('+1 hour'); // "https://example.com/some/path?_expires=...&_hash=..."
 ```
 
 ### Temporary URIs
@@ -226,7 +226,7 @@ These URIs are generated with a token that should change _once the URI has been 
 ```php
 $uri = Zenstruck\Uri\ParsedUri::wrap('https://example.com/some/path');
 
-(string) $uri->sign('a secret')->singleUse('some-token'); // "https://example.com/some/path?_token=...&_hash=..."
+(string) $uri->sign('a secret')->singleUse('some-token')->expires('+1 hour'); // "https://example.com/some/path?_expires=...&_token=...&_hash=..."
 ```
 
 > **Note**: The URL is first hashed with this token, then hashed again with secret to ensure it hasn't
@@ -252,6 +252,8 @@ $builder = $uri->sign('a secret')
 ```
 
 > **Note**: `Zenstruck\Uri\Signed\Builder` is immutable objects so any manipulations results in a new instance.
+
+For Symfony routes, use `SignedUrlGenerator::temporary('tomorrow', 'route_name')` for an explicit expiration. `SignedUrlGenerator` implements `UrlGeneratorInterface`; existing `generate()` calls remain supported, default to `+1 year`, and emit a deprecation.
 
 ### Verification
 
