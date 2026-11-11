@@ -31,7 +31,7 @@ final class SymfonySigner
     /** @var UriSigner|LegacyUriSigner */
     private $signer; // @phpstan-ignore-line
 
-    public function __construct(string $secret)
+    public function __construct(private string $secret)
     {
         $this->signer = self::createSigner($secret, self::HASH_KEY);
     }
@@ -44,21 +44,26 @@ final class SymfonySigner
     /**
      * @internal
      *
-     * @return array{0:Uri,1:\DateTimeImmutable|null,2:bool}
+     * @return array{0:Uri,1:\DateTimeImmutable,2:bool}
      */
     public function sign(Uri|string $uri, ?\DateTimeImmutable $expiresAt, ?string $singleUseToken): array
     {
-        $uri = ParsedUri::wrap($uri);
-
-        if ($expiresAt) {
-            $uri = $uri->withQueryParam(self::EXPIRES_AT_KEY, $expiresAt->getTimestamp());
+        if (null === $expiresAt) {
+            @\trigger_error('Signing a URI without an expiration is deprecated. Pass an expiration explicitly; defaulting to "+1 year".', \E_USER_DEPRECATED);
+            $expiresAt = new \DateTimeImmutable('+1 year');
         }
+
+        $uri = ParsedUri::wrap($uri);
+        $uri = $uri->withoutQueryParams(self::EXPIRES_AT_KEY);
 
         if ($singleUseToken) {
-            $uri = self::createSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY)->sign($uri); // @phpstan-ignore-line
+            $uri = self::signUri($uri, $singleUseToken, self::SINGLE_USE_TOKEN_KEY, $expiresAt);
+            $uri = $uri->withoutQueryParams(self::EXPIRES_AT_KEY);
         }
 
-        return [new ParsedUri($this->signer->sign($uri)), $expiresAt, (bool) $singleUseToken]; // @phpstan-ignore-line
+        $uri = self::signUri($uri, $this->secret, self::HASH_KEY, $expiresAt);
+
+        return [$uri, $expiresAt, (bool) $singleUseToken];
     }
 
     /**
@@ -85,27 +90,44 @@ final class SymfonySigner
 
         $singleUseSignature = $uri->query()->get(self::SINGLE_USE_TOKEN_KEY);
 
-        if (!$singleUseSignature && !$singleUseToken) { // @phpstan-ignore-line
+        if (!$singleUseSignature && !$singleUseToken) {
             return [$uri, $expiresAt, false];
         }
 
-        if ($singleUseSignature && !$singleUseToken) { // @phpstan-ignore-line
+        if (!$singleUseToken) {
             throw new InvalidSignature($uri, 'URI is single use but this was not expected.');
         }
 
-        if (!$singleUseSignature && $singleUseToken) { // @phpstan-ignore-line
+        if (!$singleUseSignature) {
             throw new InvalidSignature($uri, 'Expected single use URI.');
         }
 
-        $withoutHash = $uri->withoutQueryParams(self::HASH_KEY); // @phpstan-ignore-line
+        $withoutHash = $uri->withoutQueryParams(self::HASH_KEY);
 
-        if (!self::createSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY)->check($withoutHash)) {
+        if (!self::createSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY)->check((string) $withoutHash)) { // @phpstan-ignore class.notFound
             throw new AlreadyUsed($uri);
         }
 
         return [$uri, $expiresAt, true];
     }
 
+    private static function signUri(ParsedUri $uri, string $secret, string $parameter, \DateTimeImmutable $expiresAt): ParsedUri
+    {
+        if (\class_exists(UriSigner::class) && (new \ReflectionMethod(UriSigner::class, '__construct'))->getNumberOfParameters() >= 3) {
+            $signer = new UriSigner($secret, $parameter, self::EXPIRES_AT_KEY);
+
+            return new ParsedUri($signer->sign((string) $uri, $expiresAt));
+        }
+
+        $uri = $uri->withQueryParam(self::EXPIRES_AT_KEY, $expiresAt->getTimestamp());
+        $signer = self::createSigner($secret, $parameter);
+
+        return new ParsedUri($signer->sign((string) $uri)); // @phpstan-ignore class.notFound
+    }
+
+    /**
+     * Verify the signature separately from _expires to preserve expiration exception handling.
+     */
     private static function createSigner(#[\SensitiveParameter] string $secret, string $parameter = '_hash'): UriSigner|LegacyUriSigner // @phpstan-ignore-line
     {
         if (\class_exists(UriSigner::class)) {

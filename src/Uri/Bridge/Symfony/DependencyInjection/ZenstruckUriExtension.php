@@ -31,7 +31,7 @@ use Zenstruck\Uri\Signed\SymfonySigner;
  */
 final class ZenstruckUriExtension extends ConfigurableExtension implements ConfigurationInterface
 {
-    public function getConfigTreeBuilder(): TreeBuilder // @phpstan-ignore-line
+    public function getConfigTreeBuilder(): TreeBuilder
     {
         $builder = new TreeBuilder('zenstruck_uri');
 
