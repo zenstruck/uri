@@ -59,7 +59,7 @@ final class Query extends Part
      *
      * @param T|\Throwable $default
      *
-     * @return T
+     * @return T|mixed
      *
      * @throws \Throwable If passed as default and no match
      */

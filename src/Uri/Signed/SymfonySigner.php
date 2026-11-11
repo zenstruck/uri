@@ -85,21 +85,21 @@ final class SymfonySigner
 
         $singleUseSignature = $uri->query()->get(self::SINGLE_USE_TOKEN_KEY);
 
-        if (!$singleUseSignature && !$singleUseToken) { // @phpstan-ignore-line
+        if (!$singleUseSignature && !$singleUseToken) {
             return [$uri, $expiresAt, false];
         }
 
-        if ($singleUseSignature && !$singleUseToken) { // @phpstan-ignore-line
+        if (!$singleUseToken) {
             throw new InvalidSignature($uri, 'URI is single use but this was not expected.');
         }
 
-        if (!$singleUseSignature && $singleUseToken) { // @phpstan-ignore-line
+        if (!$singleUseSignature) {
             throw new InvalidSignature($uri, 'Expected single use URI.');
         }
 
-        $withoutHash = $uri->withoutQueryParams(self::HASH_KEY); // @phpstan-ignore-line
+        $withoutHash = $uri->withoutQueryParams(self::HASH_KEY);
 
-        if (!self::createSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY)->check($withoutHash)) {
+        if (!self::createSigner($singleUseToken, self::SINGLE_USE_TOKEN_KEY)->check((string) $withoutHash)) { // @phpstan-ignore class.notFound
             throw new AlreadyUsed($uri);
         }
 
