@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [v2.4.1](https://github.com/zenstruck/uri/releases/tag/v2.4.1)
+
+November 26th, 2026 - [v2.4.0...v2.4.1](https://github.com/zenstruck/uri/compare/v2.4.0...v2.4.1)
+
+* 57653fb fix: deprecate signing URIs without an expiration (#27) by @kbond
+* 2b6c06e fix: update URI typing and Symfony 8.2 compatibility (#27) by @kbond
+
 ## [v2.4.0](https://github.com/zenstruck/uri/releases/tag/v2.4.0)
 
 December 7th, 2025 - [v2.3.1...v2.4.0](https://github.com/zenstruck/uri/compare/v2.3.1...v2.4.0)
